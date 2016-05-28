@@ -66,13 +66,10 @@ namespace DevicePowerTask
 
                     if (!tiles.Any() || _cancelled) return;
 
-                    var mainPage = Data.GeneratePageOneData();
-                    var secondaryPage = Data.GeneratePageTwoData();
-
                     if (_cancelled) return;
 
                     await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
-                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), new[] { secondaryPage, mainPage });
+                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
                 }
             }
             catch

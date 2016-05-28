@@ -50,15 +50,8 @@ namespace DevicePowerTask
                     taskInstance.Progress = 60;
                     if (!tiles.Any() || isCancelled) return;
 
-                    var mainPage = Data.GeneratePageOneData();
-                    var secondaryPage = Data.GeneratePageTwoData();
-
                     await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
-
-                    taskInstance.Progress = 80;
-                    if (isCancelled) return;
-
-                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), new[] { secondaryPage, mainPage });
+                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
 
                     taskInstance.Progress = 100;
                 }

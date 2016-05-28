@@ -36,6 +36,7 @@
                 <StackPanel Margin="10,40,10,20" Background="#FF377CCA" Padding="10">
                     <TextBlock x:Name="Percentage" Text="90%" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
                     <TextBlock x:Name="Status" Text="discharging" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
+                    <TextBlock x:Name="Estimate" Text="" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
                 </StackPanel>
             </StackPanel>
         </Grid>

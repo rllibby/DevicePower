@@ -33,6 +33,7 @@ namespace DevicePower.Pages
 
         private static IBackgroundTaskRegistration _timerRegistration;
         private static IBackgroundTaskRegistration _systemRegistration;
+        private Settings _settings = new Settings();
         private App _viewModel;
 
         #endregion
@@ -511,13 +512,7 @@ namespace DevicePower.Pages
                         return;
                     }
 
-                    await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
-
-                    var mainPage = Data.GeneratePageOneData();
-                    var secondaryPage = Data.GeneratePageTwoData(true);
-
-                    await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
-                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), new[] { secondaryPage, mainPage });
+                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
                 }
             }
             catch (Exception ex)
@@ -569,6 +564,13 @@ namespace DevicePower.Pages
                 var battery = Battery.AggregateBattery;
                 var report = battery.GetReport();
                 var percentage = report.Percentage();
+
+                _settings.Update(report);
+
+                var estimate = _settings.GetEstimate();
+
+                Estimate.Visibility = string.IsNullOrEmpty(estimate) ? Visibility.Collapsed : Visibility.Visible;
+                Estimate.Text = estimate ?? string.Empty;
 
                 Percentage.Text = string.Format("{0}%", percentage);
                 Status.Text = report.Status.ToString().ToLower();
