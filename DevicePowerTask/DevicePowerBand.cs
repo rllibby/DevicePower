@@ -37,9 +37,28 @@ namespace DevicePowerTask
         /// <param name="reason">The reason for cancellation.</param>
         private void OnTaskCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
+            _cancelled = true;
+
+            Logging.Append("app service cancelled.");
+
             if (_backgroundTaskDeferral != null)
             {
-                _backgroundTaskDeferral.Complete();
+                try
+                {
+                    BackgroundTileEventHandler.Instance.TileOpened -= OnTileOpened;
+
+                    if (_appServiceConnection != null)
+                    {
+                        _appServiceConnection.RequestReceived -= OnRequestReceived;
+                        _appServiceConnection.Dispose();
+                        _appServiceConnection = null;
+                    }
+                }
+                finally
+                {
+                    _backgroundTaskDeferral.Complete();
+                }
+
                 _backgroundTaskDeferral = null;
             }
         }
@@ -58,7 +77,7 @@ namespace DevicePowerTask
 
                 if ((pairedBands.Length < 1) || _cancelled) return;
 
-                using (var bandClient = await SmartConnect.ConnectAsync(pairedBands[0], 2000))
+                using (var bandClient = await SmartConnect.ConnectAsync(pairedBands[0], 5000))
                 {
                     if (_cancelled) return;
 
@@ -70,6 +89,8 @@ namespace DevicePowerTask
 
                     await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
                     await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
+
+                    Logging.Append("tile opened.");
                 }
             }
             catch
@@ -105,19 +126,9 @@ namespace DevicePowerTask
         /// </summary>
         /// <param name="sender">The sender of the event.</param>
         /// <param name="e">The opened event arguments.</param>
-        private void OnTileOpened(object sender, BandTileEventArgs<IBandTileOpenedEvent> e)
+        private async void OnTileOpened(object sender, BandTileEventArgs<IBandTileOpenedEvent> e)
         {
-            RunTask().Wait();
-        }
-
-        /// <summary>
-        /// Event that is triggered when the band tile is closed.
-        /// </summary>
-        /// <param name="sender">The sender of the event.</param>
-        /// <param name="e">The closed event arguments.</param>
-        private void OnTileClosed(object sender, BandTileEventArgs<IBandTileClosedEvent> e)
-        {
-            _cancelled = true;
+            await RunTask();
         }
 
         #endregion
@@ -135,7 +146,6 @@ namespace DevicePowerTask
             taskInstance.Canceled += OnTaskCanceled;
 
             BackgroundTileEventHandler.Instance.TileOpened += OnTileOpened;
-            BackgroundTileEventHandler.Instance.TileClosed += OnTileClosed;
 
             var details = taskInstance.TriggerDetails as AppServiceTriggerDetails;
 

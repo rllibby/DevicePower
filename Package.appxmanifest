@@ -24,25 +24,24 @@
         </uap:InitialRotationPreference>
       </uap:VisualElements>
       <Extensions>
-        <uap:Extension Category="windows.appService" EntryPoint="DevicePowerTask.DevicePowerBand">
-          <uap:AppService Name="com.microsoft.band.observer" />
-        </uap:Extension>
-        <Extension Category="windows.backgroundTasks" EntryPoint="DevicePowerTask.DevicePowerSystemBandTask">
-          <BackgroundTasks>
-            <Task Type="systemEvent" />
-          </BackgroundTasks>
-        </Extension>
         <Extension Category="windows.backgroundTasks" EntryPoint="DevicePowerTask.DevicePowerTimerBandTask">
           <BackgroundTasks>
             <Task Type="timer" />
           </BackgroundTasks>
         </Extension>
+        <Extension Category="windows.backgroundTasks" EntryPoint="DevicePowerTask.DevicePowerSystemBandTask">
+          <BackgroundTasks>
+            <Task Type="systemEvent" />
+          </BackgroundTasks>
+        </Extension>
+        <uap:Extension Category="windows.appService" EntryPoint="DevicePowerTask.DevicePowerBand">
+          <uap:AppService Name="com.microsoft.band.observer" />
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>
   <Capabilities>
     <Capability Name="internetClient" />
-    <DeviceCapability Name="proximity" />
     <DeviceCapability Name="bluetooth" />
     <DeviceCapability Name="bluetooth.rfcomm">
       <Device Id="any">

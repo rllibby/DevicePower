@@ -3,13 +3,14 @@
  */
 
 using DevicePower.Pages;
+using DevicePower.Theme;
 using DevicePowerCommon;
-using Microsoft.ApplicationInsights;
 using System;
 using System.ComponentModel;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation.Metadata;
+using Windows.System.Display;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -27,6 +28,7 @@ namespace DevicePower
         #region Private fields
 
         private TransitionCollection _transitions;
+        private DisplayRequest _displayRequest;
         private bool _syncing = true;
         private bool _paired;
         private bool _tileAdded;
@@ -80,12 +82,46 @@ namespace DevicePower
         {
             var deferral = e.SuspendingOperation.GetDeferral();
 
+#if DEBUG
+            if (_displayRequest != null)
+            {
+                _displayRequest.RequestRelease();
+                _displayRequest = null;
+            }
+#endif
             deferral.Complete();
+        }
+
+        /// <summary>
+        /// Invoked when application execution is being resumed. 
+        /// </summary>
+        /// <param name="sender">The source of the resume request.</param>
+        /// <param name="e">The object associated with the event.</param>
+        private void OnResuming(object sender, object e)
+        {
+#if DEBUG
+            if (_displayRequest == null)
+            {
+                _displayRequest = new DisplayRequest();
+                _displayRequest.RequestActive();
+            }
+#endif                
         }
 
         #endregion
 
         #region Protected methods
+
+        /// <summary>
+        /// Handle window creation by setting our own custom theme.
+        /// </summary>
+        /// <param name="args"></param>
+        protected override void OnWindowCreated(WindowCreatedEventArgs args)
+        {
+            ThemeManager.SetThemeColor((Color)Resources["ThemeColor"]);
+
+            base.OnWindowCreated(args);
+        }
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
@@ -96,6 +132,9 @@ namespace DevicePower
         {
 #if DEBUG
             if (System.Diagnostics.Debugger.IsAttached) DebugSettings.EnableFrameRateCounter = true;
+
+            _displayRequest = new DisplayRequest();
+            _displayRequest.RequestActive(); 
 #endif
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -159,10 +198,10 @@ namespace DevicePower
         /// </summary>
         public App()
         {
-            WindowsAppInitializer.InitializeAsync(WindowsCollectors.Metadata | WindowsCollectors.Session);
-
             InitializeComponent();
+
             Suspending += OnSuspending;
+            Resuming += OnResuming;
         }
 
         #endregion

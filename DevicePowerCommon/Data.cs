@@ -31,25 +31,7 @@ namespace DevicePowerCommon
             var title = new TextBlockData(Common.TitleId, family);
             var spacer = new TextBlockData(Common.SpacerId, "|");
             var secondary = new TextBlockData(Common.SeondaryTitleId, string.Format("{0}%", percentage));
-            var content = new TextBlockData(Common.ContentId, report.Status.ToString().ToLower());
-
-            return new PageData(Guid.NewGuid(), 0, title, spacer, secondary, content);
-        }
-
-        /// <summary>
-        /// Generates the discharge information page.
-        /// </summary>
-        /// <param name="dischargeInfo">The discharge information string.</param>
-        /// <returns>The page data.</returns>
-        private static PageData GenerateDischargePageData(string dischargeInfo)
-        {
-            var ai = AnalyticsInfo.VersionInfo;
-            var family = ai.DeviceFamily.Replace("Windows.", "");
-
-            var title = new TextBlockData(Common.TitleId, family);
-            var spacer = new TextBlockData(Common.SpacerId, "|");
-            var secondary = new TextBlockData(Common.SeondaryTitleId, "Estimate");
-            var content = new TextBlockData(Common.ContentId, dischargeInfo);
+            var content = new TextBlockData(Common.ContentId, report.StatusDescription());
 
             return new PageData(Guid.NewGuid(), 0, title, spacer, secondary, content);
         }
@@ -77,23 +59,10 @@ namespace DevicePowerCommon
         public static PageData[] GeneratePages()
         {
             var results = new List<PageData>();
-            var settings = new Settings();
             var battery = Battery.AggregateBattery;
             var report = (battery == null) ? null : battery.GetReport();
 
-            if (report != null)
-            {
-                results.Insert(0, GenerateMainPageData(report));
-
-                settings.Update(report);
-
-                var discharge = settings.GetEstimate();
-
-                if (!string.IsNullOrEmpty(discharge))
-                {
-                    results.Insert(0, GenerateDischargePageData(discharge));
-                }
-            }
+            if (report != null) results.Insert(0, GenerateMainPageData(report));
 
             results.Insert(0, GenerateInfoPageData());
 

@@ -23,23 +23,26 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Margin="19,0,0,0">
+        <StackPanel Grid.Row="0" Margin="20,0,0,0">
             <TextBlock Text="Device Power" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,12,0,0" Foreground="White"/>
         </StackPanel>
-        <Grid Grid.Row="1" Margin="19,0,19,0">
+        <Grid Grid.Row="1" Margin="20,0,20,0">
             <StackPanel>
                 <Image Margin="0,10,0,10" Source="/Assets/about.png" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Fill" Width="64" Height="64" />
                 <TextBlock Text="{Binding Version}" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" />
                 <TextBlock Text="written by Russell Libby" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" />
                 <HyperlinkButton Content="{Binding Email}" Foreground="White" FontFamily="Segoe WP Light" FontSize="20" HorizontalAlignment="Left" Click="EmailClicked"/>
                 <StackPanel Margin="10,40,10,20" Background="#FF377CCA" Padding="10">
-                    <TextBlock x:Name="Percentage" Text="90%" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
-                    <TextBlock x:Name="Status" Text="discharging" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
-                    <TextBlock x:Name="Estimate" Text="" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
+                    <TextBlock x:Name="Percentage" Text="0%" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
+                    <TextBlock x:Name="Status" Text="unavailable" FontFamily="Segoe WP Light" FontSize="20" Foreground="White" HorizontalAlignment="Center" />
                 </StackPanel>
             </StackPanel>
         </Grid>
-        <ProgressBar Grid.Row="2" Margin="10,20,10,140" IsIndeterminate="True" Visibility="{Binding SyncVisibility}" VerticalAlignment="Bottom" Background="{x:Null}" VerticalContentAlignment="Bottom" MinHeight="20" MaxHeight="20" Foreground="White"/>
+        <StackPanel Grid.Row="2" Margin="10,10,10,10">
+            <ProgressBar  IsIndeterminate="True" Visibility="{Binding SyncVisibility}" VerticalAlignment="Bottom" Background="{x:Null}" VerticalContentAlignment="Bottom" MinHeight="20" MaxHeight="20" Foreground="White"/>
+        </StackPanel>
+        <HyperlinkButton Grid.Row="3" Margin="20,20,20,60" Content="view log" Foreground="White" FontFamily="Segoe WP Light" FontSize="20" HorizontalAlignment="Left" Click="LogsClicked"/>
     </Grid>
 </Page>

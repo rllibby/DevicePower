@@ -1,7 +1,7 @@
 ﻿/*
  *  Copyright © 2015 Russell Libby
  */
- 
+
 using DevicePowerCommon;
 using Microsoft.Band;
 using System;
@@ -21,7 +21,7 @@ namespace DevicePowerTask
         /// Async method to run when the background task is executed.
         /// </summary>
         /// <param name="taskInstance">The background task instance being run.</param>
-        public static async void Run(IBackgroundTaskInstance taskInstance)
+        public static async void Run(IBackgroundTaskInstance taskInstance, DeviceTriggerType triggerType)
         {
             var deferral = taskInstance.GetDeferral();
             var isCancelled = false;
@@ -40,7 +40,7 @@ namespace DevicePowerTask
                 taskInstance.Progress = 20;
                 if ((pairedBands.Length < 1) || isCancelled) return;
 
-                using (var bandClient = await SmartConnect.ConnectAsync(pairedBands[0], 2000))
+                using (var bandClient = await SmartConnect.ConnectAsync(pairedBands[0], 5000))
                 {
                     taskInstance.Progress = 40;
                     if (isCancelled) return;
@@ -51,9 +51,14 @@ namespace DevicePowerTask
                     if (!tiles.Any() || isCancelled) return;
 
                     await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
+
+                    taskInstance.Progress = 80;
+
                     await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
 
                     taskInstance.Progress = 100;
+
+                    Logging.Append(string.Format("sync trigger({0}).", triggerType.ToString()));
                 }
             }
             catch

@@ -33,7 +33,6 @@ namespace DevicePower.Pages
 
         private static IBackgroundTaskRegistration _timerRegistration;
         private static IBackgroundTaskRegistration _systemRegistration;
-        private Settings _settings = new Settings();
         private App _viewModel;
 
         #endregion
@@ -83,7 +82,7 @@ namespace DevicePower.Pages
             if (_timerRegistration == null)
             {
                 var taskBuilder = new BackgroundTaskBuilder { Name = Common.TimerTaskName };
-                var trigger = new TimeTrigger(37, false);
+                var trigger = new TimeTrigger(60, false);
 
                 taskBuilder.SetTrigger(trigger);
                 taskBuilder.TaskEntryPoint = typeof(DevicePowerTask.DevicePowerTimerBandTask).FullName;
@@ -218,6 +217,16 @@ namespace DevicePower.Pages
         private void RemoveTile(object sender, RoutedEventArgs e)
         {
             DeleteTile();
+        }
+
+        /// <summary>
+        /// Navigates to the logging page which displays detailed event information.
+        /// </summary>
+        /// <param name="sender">The sender of the event.</param>
+        /// <param name="e">The event arguments.</param>
+        private void LogsClicked(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(LoggingPage));
         }
 
         /// <summary>
@@ -414,48 +423,49 @@ namespace DevicePower.Pages
 
                 using (var bandClient = await BandClientManager.Instance.ConnectAsync(pairedBands[0]))
                 {
-                    var version = await bandClient.GetHardwareVersionAsync();
-
-                    if (!VersionCheck(version))
+                    if (!VersionCheck(await bandClient.GetHardwareVersionAsync()))
                     {
                         await ShowDialog(Dialogs.BadVersion);
 
                         return;
                     }
-                    
+
                     var tiles = await bandClient.TileManager.GetTilesAsync();
-
-                    if (tiles.Any())
-                    {
-                        _viewModel.IsTileAdded = true;
-                        return;
-                    }
-
-                    var tile = new BandTile(new Guid(Common.TileGuid))
-                    {
-                        Name = Common.Title,
-                        TileIcon = await LoadIcon("ms-appx:///Assets/TileLarge.png"),
-                        SmallIcon = await LoadIcon("ms-appx:///Assets/TileSmall.png"),
-                    };
-
-                    AddTileIcons(tile);
-
-                    tile.PageLayouts.Add(GeneratePageOne());
-                    tile.PageLayouts.Add(GeneratePageTwo());
-
-                    _viewModel.IsPaired = true;
 
                     try
                     {
-                        _viewModel.IsTileAdded = await bandClient.TileManager.AddTileAsync(tile);
+                        if (tiles.Any())
+                        {
+                            _viewModel.IsTileAdded = true;
+                            return;
+                        }
 
-                        await bandClient.SubscribeToBackgroundTileEventsAsync(new Guid(Common.TileGuid));
+                        var tile = new BandTile(new Guid(Common.TileGuid))
+                        {
+                            Name = Common.Title,
+                            TileIcon = await LoadIcon("ms-appx:///Assets/TileLarge.png"),
+                            SmallIcon = await LoadIcon("ms-appx:///Assets/TileSmall.png"),
+                        };
+
+                        AddTileIcons(tile);
+
+                        tile.PageLayouts.Add(GeneratePageOne());
+                        tile.PageLayouts.Add(GeneratePageTwo());
+
+                        try
+                        {
+                            _viewModel.IsTileAdded = await bandClient.TileManager.AddTileAsync(tile);
+                        }
+                        catch (BandIOException bandex)
+                        {
+                            _viewModel.IsTileAdded = (bandex.Message.Contains("MissingManifestResource"));
+
+                            if (!_viewModel.IsTileAdded) error = bandex.Message;
+                        }
                     }
-                    catch (BandIOException bandex)
+                    finally
                     {
-                        _viewModel.IsTileAdded = (bandex.Message.Contains("MissingManifestResource"));
-
-                        if (!_viewModel.IsTileAdded) error = bandex.Message;
+                        if (_viewModel.IsTileAdded) await bandClient.SubscribeToBackgroundTileEventsAsync(new Guid(Common.TileGuid));
                     }
                 }
             }
@@ -513,6 +523,8 @@ namespace DevicePower.Pages
                     }
 
                     await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
+
+                    Logging.Append("manual sync performed.");
                 }
             }
             catch (Exception ex)
@@ -562,18 +574,12 @@ namespace DevicePower.Pages
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 var battery = Battery.AggregateBattery;
-                var report = battery.GetReport();
-                var percentage = report.Percentage();
+                var report = (battery == null) ? null : battery.GetReport();
 
-                _settings.Update(report);
-
-                var estimate = _settings.GetEstimate();
-
-                Estimate.Visibility = string.IsNullOrEmpty(estimate) ? Visibility.Collapsed : Visibility.Visible;
-                Estimate.Text = estimate ?? string.Empty;
-
-                Percentage.Text = string.Format("{0}%", percentage);
-                Status.Text = report.Status.ToString().ToLower();
+                if (report == null) return;
+                
+                Percentage.Text = string.Format("{0}%", report.Percentage());
+                Status.Text = report.StatusDescription();
             });
         }
 
@@ -588,15 +594,18 @@ namespace DevicePower.Pages
         /// This parameter is typically used to configure the page.</param>
         protected async override void OnNavigatedTo(NavigationEventArgs e)
         {
-            GetTaskRegistration();
-
             DataContext = _viewModel = App.Current;
 
-            Battery.AggregateBattery.ReportUpdated += async (sender, args) => await UpdateStatus();
+            GetTaskRegistration();
 
             await UpdateStatus();
 
-            if (e.NavigationMode == NavigationMode.New) Dispatcher.RunAsync(CoreDispatcherPriority.Normal, RunBandCheck);
+            if (e.NavigationMode == NavigationMode.New)
+            { 
+                Battery.AggregateBattery.ReportUpdated += async (sender, args) => await UpdateStatus();
+
+                Dispatcher.RunAsync(CoreDispatcherPriority.Normal, RunBandCheck);
+            }
         }
 
         #endregion

@@ -20,7 +20,7 @@ namespace DevicePowerTask
         /// <param name="taskInstance">The background task instance being run.</param>
         public async void Run(IBackgroundTaskInstance taskInstance)
         {
-            SyncTask.Run(taskInstance);
+            SyncTask.Run(taskInstance, DeviceTriggerType.Timer);
         }
 
         #endregion
