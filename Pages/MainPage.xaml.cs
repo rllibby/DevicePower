@@ -440,6 +440,13 @@ namespace DevicePower.Pages
                             return;
                         }
 
+                        if (tiles.Count() >= 20)
+                        {
+                            await ShowDialog(Dialogs.TooManyTiles);
+
+                            return;
+                        }
+
                         var tile = new BandTile(new Guid(Common.TileGuid))
                         {
                             Name = Common.Title,

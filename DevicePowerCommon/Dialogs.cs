@@ -20,6 +20,17 @@ namespace DevicePowerCommon
         }
 
         /// <summary>
+        /// The message to display when the band tile limit has been reached.
+        /// </summary>
+        public static string TooManyTiles
+        {
+            get
+            {
+                return @"Sorry, the band tile limit has been reached. You can change the current band tiles from the Microsoft Health application.";
+            }
+        }
+
+        /// <summary>
         /// The message to display when the band version is incorrect.
         /// </summary>
         public static string BadVersion
