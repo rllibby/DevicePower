@@ -5,17 +5,17 @@
     xmlns:local="using:DevicePower.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Background="#FF2064B0" Foreground="White" RequestedTheme="Dark">
+    mc:Ignorable="d" RequestedTheme="Dark">
 
-    <Grid Background="#FF2064B0">
-        <ListBox x:Name="LogList" Margin="10,10,10,10" Background="#FF2064B0" BorderBrush="#FF2064B0" Foreground="White" >
-            <ListBox.ItemTemplate>
+    <Grid Background="{ThemeResource SystemControlBackgroundAccentBrush}">
+        <ListView x:Name="LogList" Margin="10,10,10,10" >
+            <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <TextBlock Text="{Binding}" Foreground="White" FontSize="14" LineStackingStrategy="BlockLineHeight" LineHeight="8" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding}" Foreground="White" FontSize="14" LineStackingStrategy="BlockLineHeight" LineHeight="12" TextWrapping="Wrap" VerticalAlignment="Stretch" HorizontalAlignment="Left" TextLineBounds="Tight" />
                     </StackPanel>
                 </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Page>

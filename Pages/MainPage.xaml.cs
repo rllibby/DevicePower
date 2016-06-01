@@ -13,8 +13,8 @@ using Windows.ApplicationModel.Background;
 using Windows.ApplicationModel.Email;
 using Windows.Devices.Power;
 using Windows.Storage;
+using Windows.System.Power;
 using Windows.UI.Core;
-using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Imaging;
@@ -158,29 +158,6 @@ namespace DevicePower.Pages
         }
 
         /// <summary>
-        /// Command handlers for the warning dialog.
-        /// </summary>
-        /// <param name="commandLabel">The command selected by the user.</param>
-        private void CommandWarning(IUICommand commandLabel)
-        {
-            Focus(FocusState.Programmatic);
-        }
-
-        /// <summary>
-        /// Shows a message dialog.
-        /// </summary>
-        /// <param name="message">The dialog content to display.</param>
-        /// <returns>The async task that can be awaited.</returns>
-        private async Task ShowDialog(string message)
-        {
-            var dialog = new MessageDialog(message, Common.Title);
-
-            dialog.Commands.Add(new UICommand(Dialogs.Ok, CommandWarning));
-
-            await dialog.ShowAsync();
-        }
-
-        /// <summary>
         /// Loads the png file from storage and creates a band tile icon from it.
         /// </summary>
         /// <param name="uri">The storage uri for the image.</param>
@@ -238,9 +215,7 @@ namespace DevicePower.Pages
         {
             var v = 0;
 
-            if (!int.TryParse(version, out v)) return true;
-
-            return (v >= 20);
+            return (!int.TryParse(version, out v)) ? true : (v >= 20);
         }
 
         /// <summary>
@@ -364,7 +339,7 @@ namespace DevicePower.Pages
                 if (pairedBands.Length < 1)
                 {
                     _viewModel.IsPaired = _viewModel.IsTileAdded = false;
-                    await ShowDialog(Dialogs.NotPaired);
+                    await Dialogs.ShowDialog(this, Dialogs.NotPaired);
 
                     return;
                 }
@@ -393,7 +368,9 @@ namespace DevicePower.Pages
 
             if (string.IsNullOrEmpty(error)) return;
 
-            await ShowDialog(error);
+            Logging.Append(error);
+
+            await Dialogs.ShowDialog(this, error);
         }
 
         /// <summary>
@@ -414,7 +391,7 @@ namespace DevicePower.Pages
                 if (pairedBands.Length < 1)
                 {
                     _viewModel.IsPaired = _viewModel.IsTileAdded = false;
-                    await ShowDialog(Dialogs.NotPaired);
+                    await Dialogs.ShowDialog(this, Dialogs.NotPaired);
 
                     return;
                 }
@@ -425,7 +402,7 @@ namespace DevicePower.Pages
                 {
                     if (!VersionCheck(await bandClient.GetHardwareVersionAsync()))
                     {
-                        await ShowDialog(Dialogs.BadVersion);
+                        await Dialogs.ShowDialog(this, Dialogs.BadVersion);
 
                         return;
                     }
@@ -442,7 +419,7 @@ namespace DevicePower.Pages
 
                         if (tiles.Count() >= 20)
                         {
-                            await ShowDialog(Dialogs.TooManyTiles);
+                            await Dialogs.ShowDialog(this, Dialogs.TooManyTiles);
 
                             return;
                         }
@@ -487,7 +464,9 @@ namespace DevicePower.Pages
 
             if (string.IsNullOrEmpty(error)) return;
 
-            ShowDialog(error);
+            Logging.Append(error);
+
+            await Dialogs.ShowDialog(this, error);
         }
 
         /// <summary>
@@ -510,7 +489,7 @@ namespace DevicePower.Pages
                 if (pairedBands.Length < 1)
                 {
                     _viewModel.IsPaired = _viewModel.IsTileAdded = false;
-                    await ShowDialog(Dialogs.NotPaired);
+                    await Dialogs.ShowDialog(this, Dialogs.NotPaired);
 
                     return;
                 }
@@ -524,7 +503,8 @@ namespace DevicePower.Pages
                     if (!tiles.Any())
                     {
                         _viewModel.IsTileAdded = false;
-                        await ShowDialog(Dialogs.TileRemoved);
+
+                        await Dialogs.ShowDialog(this, Dialogs.TileRemoved);
 
                         return;
                     }
@@ -545,12 +525,14 @@ namespace DevicePower.Pages
 
             if (string.IsNullOrEmpty(error))
             {
-                await ShowDialog(Dialogs.Synced);
+                await Dialogs.ShowDialog(this, Dialogs.Synced);
 
                 return;
             }
 
-            await ShowDialog(error);
+            Logging.Append(error);
+
+            await Dialogs.ShowDialog(this, error);
         }
 
         /// <summary>
@@ -582,11 +564,13 @@ namespace DevicePower.Pages
             {
                 var battery = Battery.AggregateBattery;
                 var report = (battery == null) ? null : battery.GetReport();
-
+                var estimate = PowerManager.RemainingDischargeTime;
                 if (report == null) return;
                 
                 Percentage.Text = string.Format("{0}%", report.Percentage());
                 Status.Text = report.StatusDescription();
+                Estimate.Visibility = (estimate == TimeSpan.MaxValue) ? Visibility.Collapsed : Visibility.Visible;
+                Estimate.Text = (estimate == TimeSpan.MaxValue) ? string.Empty : string.Format("{0:0.00} hrs", estimate.TotalHours);
             });
         }
 
@@ -608,7 +592,8 @@ namespace DevicePower.Pages
             await UpdateStatus();
 
             if (e.NavigationMode == NavigationMode.New)
-            { 
+            {
+                Logging.Append("application started");
                 Battery.AggregateBattery.ReportUpdated += async (sender, args) => await UpdateStatus();
 
                 Dispatcher.RunAsync(CoreDispatcherPriority.Normal, RunBandCheck);

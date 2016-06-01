@@ -6,6 +6,8 @@ using Microsoft.Band.Tiles.Pages;
 using System;
 using System.Collections.Generic;
 using Windows.Devices.Power;
+using Windows.Storage;
+using Windows.System.Power;
 using Windows.System.Profile;
 
 namespace DevicePowerCommon
@@ -37,6 +39,25 @@ namespace DevicePowerCommon
         }
 
         /// <summary>
+        /// Generates the estimate page of the band tile.
+        /// </summary>
+        /// <param name="estimate">The estimated remaining time.</param>
+        /// <returns>The page data.</returns>
+        private static PageData GenerateEstimatePageData(TimeSpan estimate)
+        {
+            var ai = AnalyticsInfo.VersionInfo;
+            var family = ai.DeviceFamily.Replace("Windows.", "");
+
+            var title = new TextBlockData(Common.TitleId, family);
+            var spacer = new TextBlockData(Common.SpacerId, "|");
+            var secondary = new TextBlockData(Common.SeondaryTitleId, "Estimate");
+            var content = new TextBlockData(Common.ContentId, string.Format("{0:0.00} hrs", estimate.TotalHours));
+
+            return new PageData(Guid.NewGuid(), 0, title, spacer, secondary, content);
+
+        }
+
+        /// <summary>
         /// Generates the data for page two of the band tile.
         /// </summary>
         /// <returns>The page data.</returns>
@@ -61,8 +82,13 @@ namespace DevicePowerCommon
             var results = new List<PageData>();
             var battery = Battery.AggregateBattery;
             var report = (battery == null) ? null : battery.GetReport();
+            var estimate = PowerManager.RemainingDischargeTime;
 
-            if (report != null) results.Insert(0, GenerateMainPageData(report));
+            if (report != null)
+            {
+                results.Insert(0, GenerateMainPageData(report));
+                if (estimate != TimeSpan.MaxValue) results.Insert(0, GenerateEstimatePageData(estimate));
+            }
 
             results.Insert(0, GenerateInfoPageData());
 

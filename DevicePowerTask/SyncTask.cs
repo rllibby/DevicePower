@@ -7,6 +7,9 @@ using Microsoft.Band;
 using System;
 using System.Linq;
 using Windows.ApplicationModel.Background;
+using Windows.Devices.Power;
+using Windows.Storage;
+using Windows.System.Power;
 
 namespace DevicePowerTask
 {
@@ -15,6 +18,33 @@ namespace DevicePowerTask
     /// </summary>
     internal static class SyncTask
     {
+        #region Private constants
+
+        private const string Status = "Status";
+
+        #endregion
+
+        #region Private fields
+
+        private static BackgroundTaskDeferral _deferral;
+        private static bool _cancelled;
+
+        #endregion
+
+        #region Private methods
+
+        /// <summary>
+        /// Event that is triggered when the task is cancelled.
+        /// </summary>
+        /// <param name="sender">The task instance cancelling the task.</param>
+        /// <param name="reason">The reason for cancellation.</param>
+        private static void OnTaskCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
+        {
+            _cancelled = true;
+        }
+
+        #endregion
+
         #region Public methods
 
         /// <summary>
@@ -23,13 +53,10 @@ namespace DevicePowerTask
         /// <param name="taskInstance">The background task instance being run.</param>
         public static async void Run(IBackgroundTaskInstance taskInstance, DeviceTriggerType triggerType)
         {
-            var deferral = taskInstance.GetDeferral();
-            var isCancelled = false;
+            taskInstance.Canceled += OnTaskCanceled;
 
-            BackgroundTaskCanceledEventHandler cancelled = (sender, reason) =>
-            {
-                isCancelled = true;
-            };
+            _deferral = taskInstance.GetDeferral();
+            _cancelled = false;
 
             try
             {
@@ -38,21 +65,48 @@ namespace DevicePowerTask
                 var pairedBands = await BandClientManager.Instance.GetBandsAsync(true);
 
                 taskInstance.Progress = 20;
-                if ((pairedBands.Length < 1) || isCancelled) return;
+                if ((pairedBands.Length < 1) || _cancelled) return;
 
                 using (var bandClient = await SmartConnect.ConnectAsync(pairedBands[0], 5000))
                 {
                     taskInstance.Progress = 40;
-                    if (isCancelled) return;
+                    if (_cancelled) return;
 
                     var tiles = await bandClient.TileManager.GetTilesAsync();
 
                     taskInstance.Progress = 60;
-                    if (!tiles.Any() || isCancelled) return;
+                    if (!tiles.Any() || _cancelled) return;
+
+                    if (triggerType == DeviceTriggerType.PowerChange) 
+                    {
+                        var localSettings = ApplicationData.Current.LocalSettings;
+                        var battery = Battery.AggregateBattery;
+                        var report = (battery == null) ? null : battery.GetReport();
+
+                        try
+                        {
+                            var status = localSettings.Values[Status];
+
+                            if ((status == null) || !string.Equals(status.ToString(), BatteryStatus.Idle.ToString(), StringComparison.OrdinalIgnoreCase))
+                            {
+                                if ((report != null) && (report.Status == BatteryStatus.Idle) && (report.Percentage() == 100))
+                                {
+                                    await bandClient.NotificationManager.ShowDialogAsync(new Guid(Common.TileGuid), "Mobile", "Fully Charged");
+
+                                    taskInstance.Progress = 80;
+                                    if (_cancelled) return;
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            localSettings.Values[Status] = (report == null) ? BatteryStatus.NotPresent.ToString() : report.Status.ToString();
+                        }
+                    }
 
                     await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
 
-                    taskInstance.Progress = 80;
+                    taskInstance.Progress = 90;
 
                     await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
 
@@ -61,13 +115,16 @@ namespace DevicePowerTask
                     Logging.Append(string.Format("sync trigger({0}).", triggerType.ToString()));
                 }
             }
-            catch
+            catch (Exception exception)
             {
+                Logging.Append(exception.Message);
             }
             finally
             {
-                taskInstance.Canceled -= cancelled;
-                deferral.Complete();
+                taskInstance.Canceled -= OnTaskCanceled;
+
+                _deferral.Complete();
+                _deferral = null;
             }
         }
 

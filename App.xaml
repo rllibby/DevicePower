@@ -12,6 +12,10 @@
                 <ResourceDictionary x:Key="Dark">
                     <Color x:Key="ThemeColor">#2064B0</Color>
                     <SolidColorBrush x:Key="ThemeBrush" Color="{ThemeResource ThemeColor}" />
+                    <SolidColorBrush x:Key="ListViewItemSelectedPointerOverBorderThemeBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListViewItemPointerOverBackgroundThemeBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListViewItemSelectedPointerOverBackgroundThemeBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListViewItemSelectedBackgroundThemeBrush" Color="Transparent" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Light">
                     <Color x:Key="ThemeColor">#2064B0</Color>

@@ -3,7 +3,6 @@
  */
 
 using DevicePower.Pages;
-using DevicePower.Theme;
 using DevicePowerCommon;
 using System;
 using System.ComponentModel;
@@ -27,15 +26,18 @@ namespace DevicePower
     {
         #region Private fields
 
-        private TransitionCollection _transitions;
+#if DEBUG
         private DisplayRequest _displayRequest;
+#endif
+
+        private TransitionCollection _transitions;
         private bool _syncing = true;
         private bool _paired;
         private bool _tileAdded;
 
-        #endregion
+#endregion
 
-        #region Private methods
+#region Private methods
 
         /// <summary>
         /// Determines if we can sync to and/or remove the band tile.
@@ -105,23 +107,12 @@ namespace DevicePower
                 _displayRequest = new DisplayRequest();
                 _displayRequest.RequestActive();
             }
-#endif                
+#endif
         }
 
-        #endregion
+#endregion
 
-        #region Protected methods
-
-        /// <summary>
-        /// Handle window creation by setting our own custom theme.
-        /// </summary>
-        /// <param name="args"></param>
-        protected override void OnWindowCreated(WindowCreatedEventArgs args)
-        {
-            ThemeManager.SetThemeColor((Color)Resources["ThemeColor"]);
-
-            base.OnWindowCreated(args);
-        }
+#region Protected methods
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
@@ -142,10 +133,7 @@ namespace DevicePower
             {
                 var statusBar = StatusBar.GetForCurrentView();
 
-                if (statusBar != null)
-                {
-                    statusBar.ForegroundColor = Colors.White;
-                }
+                if (statusBar != null) statusBar.ForegroundColor = Colors.White;
             }
 
             if (rootFrame == null)
@@ -171,16 +159,13 @@ namespace DevicePower
                         {
                             _transitions = new TransitionCollection();
 
-                            foreach (var c in rootFrame.ContentTransitions)
-                            {
-                                _transitions.Add(c);
-                            }
+                            foreach (var c in rootFrame.ContentTransitions) _transitions.Add(c);
                         }
 
                         rootFrame.ContentTransitions = null;
                         rootFrame.Navigated += RootFrame_FirstNavigated;
 
-                        if (!rootFrame.Navigate(typeof(MainPage), e.Arguments)) throw new Exception("Failed to create initial page");
+                        if (!rootFrame.Navigate(typeof(MainPage), e.Arguments)) throw new Exception("Failed to create initial page.");
                     }
                 }
 
@@ -188,9 +173,9 @@ namespace DevicePower
             }
         }
 
-        #endregion
+#endregion
 
-        #region Constructor
+#region Constructor
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -204,9 +189,9 @@ namespace DevicePower
             Resuming += OnResuming;
         }
 
-        #endregion
+#endregion
 
-        #region Public properties
+#region Public properties
 
         /// <summary>
         /// True if a tile can be added, otherwise false.
@@ -323,6 +308,6 @@ namespace DevicePower
             get { return (App)Application.Current; }
         }
 
-        #endregion 
+#endregion
     }
 }

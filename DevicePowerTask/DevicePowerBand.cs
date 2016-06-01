@@ -85,16 +85,15 @@ namespace DevicePowerTask
 
                     if (!tiles.Any() || _cancelled) return;
 
-                    if (_cancelled) return;
-
                     await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
                     await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
 
                     Logging.Append("tile opened.");
                 }
             }
-            catch
+            catch (Exception exception)
             {
+                Logging.Append(exception.Message);
             }
         }
 
