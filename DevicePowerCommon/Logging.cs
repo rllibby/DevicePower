@@ -21,6 +21,16 @@ namespace DevicePowerCommon
         #endregion
 
         /// <summary>
+        /// Creates a formatted message to add to the log.
+        /// </summary>
+        /// <param name="methodName">The name of the method where the error occurred.</param>
+        /// <param name="error">The error description.</param>
+        public static void AppendError(string methodName, string error)
+        {
+            Append(string.Format("error in '{0}'\r\n{1}", methodName, error));
+        }
+
+        /// <summary>
         /// Append data to the the current log.
         /// </summary>
         /// <param name="message"></param>

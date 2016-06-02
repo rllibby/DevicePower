@@ -360,7 +360,7 @@ namespace DevicePower.Pages
             }
             catch (Exception exception)
             {
-                error = exception.ToString();
+                error = exception.Message;
             }
             finally
             {
@@ -369,7 +369,7 @@ namespace DevicePower.Pages
 
             if (string.IsNullOrEmpty(error)) return;
 
-            Logging.Append(error);
+            Logging.AppendError("Delete Tile", error);
 
             await Dialogs.ShowDialog(this, error);
         }
@@ -456,7 +456,7 @@ namespace DevicePower.Pages
             }
             catch (Exception exception)
             {
-                error = exception.ToString();
+                error = exception.Message;
             }
             finally
             {
@@ -465,7 +465,7 @@ namespace DevicePower.Pages
 
             if (string.IsNullOrEmpty(error)) return;
 
-            Logging.Append(error);
+            Logging.AppendError("RunBandCheck", error);
 
             await Dialogs.ShowDialog(this, error);
         }
@@ -517,7 +517,7 @@ namespace DevicePower.Pages
             }
             catch (Exception exception)
             {
-                error = exception.ToString();
+                error = exception.Message;
             }
             finally
             {
@@ -531,7 +531,7 @@ namespace DevicePower.Pages
                 return;
             }
 
-            Logging.Append(error);
+            Logging.AppendError("Sync", error);
 
             await Dialogs.ShowDialog(this, error);
         }
