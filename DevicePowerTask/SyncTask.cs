@@ -79,13 +79,12 @@ namespace DevicePowerTask
 
                     if (triggerType == DeviceTriggerType.PowerChange) 
                     {
-                        var localSettings = ApplicationData.Current.LocalSettings;
                         var battery = Battery.AggregateBattery;
                         var report = (battery == null) ? null : battery.GetReport();
 
                         try
                         {
-                            var status = localSettings.Values[Status];
+                            var status = ApplicationData.Current.LocalSettings.Values[Status];
 
                             if ((status == null) || !string.Equals(status.ToString(), BatteryStatus.Idle.ToString(), StringComparison.OrdinalIgnoreCase))
                             {
@@ -100,7 +99,7 @@ namespace DevicePowerTask
                         }
                         finally
                         {
-                            localSettings.Values[Status] = (report == null) ? BatteryStatus.NotPresent.ToString() : report.Status.ToString();
+                            ApplicationData.Current.LocalSettings.Values[Status] = (report == null) ? BatteryStatus.NotPresent.ToString() : report.Status.ToString();
                         }
                     }
 
@@ -117,7 +116,7 @@ namespace DevicePowerTask
             }
             catch (Exception exception)
             {
-                Logging.Append(exception.Message);
+                Logging.Append(exception.ToString());
             }
             finally
             {

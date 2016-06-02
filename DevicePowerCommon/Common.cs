@@ -2,6 +2,8 @@
  *  Copyright © 2016, Russell Libby
  */
 
+using Windows.System.Profile;
+
 namespace DevicePowerCommon
 {
     /// <summary>
@@ -10,6 +12,14 @@ namespace DevicePowerCommon
     public static class Common
     {
         #region Public properties
+
+        /// <summary>
+        /// Returns the simplified device family.
+        /// </summary>
+        public static string DeviceFamily
+        {
+            get { return AnalyticsInfo.VersionInfo.DeviceFamily.Replace("Windows.", ""); }
+        }
 
         /// <summary>
         /// The application title.

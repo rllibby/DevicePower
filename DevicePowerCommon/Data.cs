@@ -6,9 +6,7 @@ using Microsoft.Band.Tiles.Pages;
 using System;
 using System.Collections.Generic;
 using Windows.Devices.Power;
-using Windows.Storage;
 using Windows.System.Power;
-using Windows.System.Profile;
 
 namespace DevicePowerCommon
 {
@@ -26,11 +24,8 @@ namespace DevicePowerCommon
         /// <returns>The page data.</returns>
         private static PageData GenerateMainPageData(BatteryReport report)
         {
-            var ai = AnalyticsInfo.VersionInfo;
-            var family = ai.DeviceFamily.Replace("Windows.", "");
             var percentage = report.Percentage();
-
-            var title = new TextBlockData(Common.TitleId, family);
+            var title = new TextBlockData(Common.TitleId, Common.DeviceFamily);
             var spacer = new TextBlockData(Common.SpacerId, "|");
             var secondary = new TextBlockData(Common.SeondaryTitleId, string.Format("{0}%", percentage));
             var content = new TextBlockData(Common.ContentId, report.StatusDescription());
@@ -45,23 +40,19 @@ namespace DevicePowerCommon
         /// <returns>The page data.</returns>
         private static PageData GenerateEstimatePageData(TimeSpan estimate)
         {
-            var ai = AnalyticsInfo.VersionInfo;
-            var family = ai.DeviceFamily.Replace("Windows.", "");
-
-            var title = new TextBlockData(Common.TitleId, family);
+            var title = new TextBlockData(Common.TitleId, Common.DeviceFamily);
             var spacer = new TextBlockData(Common.SpacerId, "|");
             var secondary = new TextBlockData(Common.SeondaryTitleId, "Estimate");
             var content = new TextBlockData(Common.ContentId, string.Format("{0:0.00} hrs", estimate.TotalHours));
 
             return new PageData(Guid.NewGuid(), 0, title, spacer, secondary, content);
-
         }
 
         /// <summary>
         /// Generates the data for page two of the band tile.
         /// </summary>
         /// <returns>The page data.</returns>
-        public static PageData GenerateInfoPageData(bool isApp = false)
+        private static PageData GenerateInfoPageData(bool isApp = false)
         {
             var description = string.Format("{0} Updated\n{1}", (isApp ? "Application" : "Background"), DateTime.Now.ToString(Common.DateFormat));
             var updated = new WrappedTextBlockData(Common.UpdateId, description);

@@ -12,7 +12,7 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
-                        <TextBlock Text="{Binding}" Foreground="White" FontSize="14" LineStackingStrategy="BlockLineHeight" LineHeight="12" TextWrapping="Wrap" VerticalAlignment="Stretch" HorizontalAlignment="Left" TextLineBounds="Tight" />
+                        <TextBlock Text="{Binding}" Foreground="White" FontSize="14" LineStackingStrategy="BlockLineHeight" LineHeight="12" TextWrapping="Wrap" VerticalAlignment="Stretch" HorizontalAlignment="Left" TextLineBounds="TrimToBaseline" FontStretch="Condensed" />
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

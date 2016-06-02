@@ -93,7 +93,7 @@ namespace DevicePowerTask
             }
             catch (Exception exception)
             {
-                Logging.Append(exception.Message);
+                Logging.Append(exception.ToString());
             }
         }
 

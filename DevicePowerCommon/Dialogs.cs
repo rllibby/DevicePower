@@ -26,9 +26,47 @@ namespace DevicePowerCommon
             /* No-op */    
         }
 
+        /// <summary>
+        /// Command handlers for the yes no dialog.
+        /// </summary>
+        /// <param name="commandLabel">The command selected by the user.</param>
+        private static void CommandYes(IUICommand commandLabel)
+        {
+            /* No-op */
+        }
+
+        /// <summary>
+        /// Command handlers for the yes no dialog.
+        /// </summary>
+        /// <param name="commandLabel">The command selected by the user.</param>
+        private static void CommandNo(IUICommand commandLabel)
+        {
+            /* No-op */
+        }
+
         #endregion
 
         #region Public methods
+
+        /// <summary>
+        /// Shows a message dialog accepting yes or no.
+        /// </summary>
+        /// <param name="control">The control to receive focus after dialog is dismissed.</param>
+        /// <param name="message">The dialog content to display.</param>
+        /// <returns>The async task that can be awaited.</returns>
+        public static async Task<bool> ShowDialogYesNo(Control control, string message)
+        {
+            var dialog = new MessageDialog(message, Common.Title);
+
+            dialog.Commands.Add(new UICommand(Dialogs.Yes, CommandYes, true));
+            dialog.Commands.Add(new UICommand(Dialogs.No, CommandNo, false));
+
+            var result = await dialog.ShowAsync();
+
+            if (control != null) control.Focus(FocusState.Programmatic);
+
+            return result.Id.Equals(true);
+        }
 
         /// <summary>
         /// Shows a message dialog.
@@ -57,6 +95,22 @@ namespace DevicePowerCommon
         public static string Ok
         {
             get { return "ok"; }
+        }
+
+        /// <summary>
+        /// Yes
+        /// </summary>
+        public static string Yes
+        {
+            get { return "yes"; }
+        }
+
+        /// <summary>
+        /// No
+        /// </summary>
+        public static string No
+        {
+            get { return "no"; }
         }
 
         /// <summary>

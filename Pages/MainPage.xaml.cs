@@ -8,6 +8,7 @@ using Microsoft.Band.Tiles;
 using Microsoft.Band.Tiles.Pages;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
 using Windows.ApplicationModel.Email;
@@ -357,9 +358,9 @@ namespace DevicePower.Pages
                     _viewModel.IsTileAdded = false;
                 }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                error = ex.Message;
+                error = exception.ToString();
             }
             finally
             {
@@ -453,9 +454,9 @@ namespace DevicePower.Pages
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                error = ex.Message;
+                error = exception.ToString();
             }
             finally
             {
@@ -514,9 +515,9 @@ namespace DevicePower.Pages
                     Logging.Append("manual sync performed.");
                 }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                error = ex.Message;
+                error = exception.ToString();
             }
             finally
             {
@@ -542,12 +543,26 @@ namespace DevicePower.Pages
         /// <param name="e">The event argument.</param>
         private async void EmailClicked(object sender, RoutedEventArgs e)
         {
+            var includeLog = await Dialogs.ShowDialogYesNo(this, "Would you like to include the log in the body of the email?");
+
             var sendTo = new EmailRecipient
             {
                 Address = Common.Email
             };
 
             var mail = new EmailMessage { Subject = string.Format("{0} {1}", Common.Title, Common.Version), Body = string.Empty };
+
+            if (includeLog)
+            {
+                var log = Logging.Log();
+                var attach = new StringBuilder("\r\n\r\n");
+
+                foreach (var line in log) attach.AppendLine(line);
+
+                attach.AppendLine();
+                                
+                mail.Body = attach.ToString();
+            }
 
             mail.To.Add(sendTo);
 

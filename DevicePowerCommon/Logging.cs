@@ -30,14 +30,9 @@ namespace DevicePowerCommon
 
             data.Insert(0, string.Format("{0} - {1}", DateTime.Now.ToString("MM/dd/yy HH:mm:ss"), message));
 
-            while (data.Count > 64)
-            {
-                data.RemoveAt(data.Count - 1);
-            }
+            while (data.Count > 64) data.RemoveAt(data.Count - 1);
 
-            var localSettings = ApplicationData.Current.LocalSettings;
-
-            localSettings.Values[Logger] = JsonConvert.SerializeObject(data);
+            ApplicationData.Current.LocalSettings.Values[Logger] = JsonConvert.SerializeObject(data);
         }
 
         /// <summary>
@@ -46,14 +41,11 @@ namespace DevicePowerCommon
         /// <returns></returns>
         public static IList<string> Log()
         {
-            var localSettings = ApplicationData.Current.LocalSettings;
-            var data = localSettings.Values[Logger];
-
-            if ((data == null) || string.IsNullOrEmpty(data.ToString())) return new List<string>();
+            var data = ApplicationData.Current.LocalSettings.Values[Logger];
 
             try
             {
-                return JsonConvert.DeserializeObject<IList<string>>(data.ToString());
+                return ((data == null) || string.IsNullOrEmpty(data.ToString())) ? new List<string>() : JsonConvert.DeserializeObject<IList<string>>(data.ToString());
             }
             catch
             {
