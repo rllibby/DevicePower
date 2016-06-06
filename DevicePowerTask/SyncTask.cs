@@ -1,13 +1,17 @@
 ﻿/*
- *  Copyright © 2015 Russell Libby
+ *  Copyright © 2016 Russell Libby
  */
 
 using DevicePowerCommon;
 using Microsoft.Band;
+using Microsoft.Band.Tiles;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using Windows.ApplicationModel.AppService;
 using Windows.ApplicationModel.Background;
 using Windows.Devices.Power;
+using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.System.Power;
 
@@ -16,7 +20,7 @@ namespace DevicePowerTask
     /// <summary>
     /// Common sync task routine to be called from all the different background tasks.
     /// </summary>
-    internal static class SyncTask
+    internal class SyncTask
     {
         #region Private constants
 
@@ -26,8 +30,8 @@ namespace DevicePowerTask
 
         #region Private fields
 
-        private static BackgroundTaskDeferral _deferral;
-        private static bool _cancelled;
+        private volatile BackgroundTaskDeferral _deferral;
+        private DeviceTriggerType _triggerType;
 
         #endregion
 
@@ -38,9 +42,132 @@ namespace DevicePowerTask
         /// </summary>
         /// <param name="sender">The task instance cancelling the task.</param>
         /// <param name="reason">The reason for cancellation.</param>
-        private static void OnTaskCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
+        private void OnTaskCanceled(IBackgroundTaskInstance sender, BackgroundTaskCancellationReason reason)
         {
-            _cancelled = true;
+            try
+            {
+                Logging.Append(string.Format("Background task for trigger type '{0}' was cancelled due to '{1}.", _triggerType, reason));
+
+                _deferral?.Complete();
+            }
+            finally
+            {
+                _deferral = null;
+            }
+        }
+
+        /// <summary>
+        /// Checks the power change event to see if the user's device is fully charged.
+        /// </summary>
+        /// <param name="client">The band client to use for notifications.</param>
+        /// <param name="report">The current battery report.</param>
+        private async Task CheckPowerChange(IBandClient client, BatteryReport report)
+        {
+            if (client == null) return;
+
+            try
+            {
+                if (report == null) return;
+
+                var status = ApplicationData.Current.LocalSettings.Values[Status];
+
+                if ((status == null) || !string.Equals(status.ToString(), BatteryStatus.Idle.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    if ((report != null) && (report.Status == BatteryStatus.Idle) && (report.Percentage() == 100))
+                    {
+                       await client.NotificationManager.ShowDialogAsync(new Guid(Common.TileGuid), Common.DeviceFamily, Common.FullCharge);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Logging.AppendError("CheckPowerChange", exception.Message);
+            }
+            finally
+            {
+                ApplicationData.Current.LocalSettings.Values[Status] = (report == null) ? BatteryStatus.NotPresent.ToString() : report.Status.ToString();
+            }
+        }
+
+        /// <summary>
+        /// The background task that performs the band update.
+        /// </summary>
+        /// <returns>The async task.</returns>
+        private async Task RunBackgroundTask()
+        {
+            try
+            { 
+                var pairedBands = await BandClientManager.Instance.GetBandsAsync(true);
+
+                if (_deferral == null) return;
+
+                using (var bandClient = await BandClientManager.Instance.ConnectAsync(pairedBands[0]))
+                {
+                    if (_deferral == null) return;
+
+                    var tiles = await bandClient.TileManager.GetTilesAsync();
+
+                    if (!tiles.Any() || (_deferral == null)) return;
+
+                    if (_triggerType == DeviceTriggerType.PowerChange)
+                    {
+                        var battery = Battery.AggregateBattery;
+
+                        await CheckPowerChange(bandClient, (battery == null) ? null : battery.GetReport());
+                    }
+
+                    await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
+                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
+                }
+            }
+            catch (Exception exception)
+            {
+                Logging.AppendError("RunBackgroundTask", exception.Message);
+            }
+        }
+
+        /// <summary>
+        /// Event that is triggered when a request is received.
+        /// </summary>
+        /// <param name="sender">The app service connection.</param>
+        /// <param name="args">The app service received event arguments.</param>
+        private async void OnRequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
+        {
+            var messageDeferral = args.GetDeferral();
+
+            try
+            {
+                BackgroundTileEventHandler.Instance.HandleTileEvent(args.Request.Message);
+
+                await args.Request.SendResponseAsync(new ValueSet());
+            }
+            finally
+            {
+                messageDeferral.Complete();
+            }
+        }
+
+        /// <summary>
+        /// Event that is triggered when the band tile is opened.
+        /// </summary>
+        /// <param name="sender">The sender of the event.</param>
+        /// <param name="e">The opened event arguments.</param>
+        private async void OnTileOpened(object sender, BandTileEventArgs<IBandTileOpenedEvent> e)
+        {
+            await RunBackgroundTask();
+        }
+
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="triggerType">The trigger type that this task will service.</param>
+        public SyncTask(DeviceTriggerType triggerType)
+        {
+            _triggerType = triggerType;
         }
 
         #endregion
@@ -51,78 +178,39 @@ namespace DevicePowerTask
         /// Async method to run when the background task is executed.
         /// </summary>
         /// <param name="taskInstance">The background task instance being run.</param>
-        public static async void Run(IBackgroundTaskInstance taskInstance, DeviceTriggerType triggerType)
+        public async void Run(IBackgroundTaskInstance taskInstance)
         {
+            _deferral = taskInstance.GetDeferral();
             taskInstance.Canceled += OnTaskCanceled;
 
-            _deferral = taskInstance.GetDeferral();
-            _cancelled = false;
+            Logging.Append(string.Format("Background task started for trigger type '{0}'.", _triggerType));
 
+            /* Handling for the AppServiceConnection */
+            if (_triggerType == DeviceTriggerType.AppService)
+            {
+                var details = taskInstance.TriggerDetails as AppServiceTriggerDetails;
+
+                if ((details != null) && (details.AppServiceConnection != null))
+                {
+                    BackgroundTileEventHandler.Instance.TileOpened += OnTileOpened;
+                    details.AppServiceConnection.RequestReceived += OnRequestReceived;
+
+                    return;
+                }
+            }
+
+            /* Handling for the timer and power change triggers */
             try
             {
                 taskInstance.Progress = 10;
 
-                var pairedBands = await BandClientManager.Instance.GetBandsAsync(true);
-
-                taskInstance.Progress = 20;
-                if ((pairedBands.Length < 1) || _cancelled) return;
-
-                using (var bandClient = await SmartConnect.ConnectAsync(pairedBands[0], 5000))
-                {
-                    taskInstance.Progress = 40;
-                    if (_cancelled) return;
-
-                    var tiles = await bandClient.TileManager.GetTilesAsync();
-
-                    taskInstance.Progress = 60;
-                    if (!tiles.Any() || _cancelled) return;
-
-                    if (triggerType == DeviceTriggerType.PowerChange) 
-                    {
-                        var battery = Battery.AggregateBattery;
-                        var report = (battery == null) ? null : battery.GetReport();
-
-                        try
-                        {
-                            var status = ApplicationData.Current.LocalSettings.Values[Status];
-
-                            if ((status == null) || !string.Equals(status.ToString(), BatteryStatus.Idle.ToString(), StringComparison.OrdinalIgnoreCase))
-                            {
-                                if ((report != null) && (report.Status == BatteryStatus.Idle) && (report.Percentage() == 100))
-                                {
-                                    await bandClient.NotificationManager.ShowDialogAsync(new Guid(Common.TileGuid), "Mobile", "Fully Charged");
-
-                                    taskInstance.Progress = 80;
-                                    if (_cancelled) return;
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            ApplicationData.Current.LocalSettings.Values[Status] = (report == null) ? BatteryStatus.NotPresent.ToString() : report.Status.ToString();
-                        }
-                    }
-
-                    await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
-
-                    taskInstance.Progress = 90;
-
-                    await bandClient.TileManager.SetPagesAsync(new Guid(Common.TileGuid), Data.GeneratePages());
-
-                    taskInstance.Progress = 100;
-
-                    Logging.Append(string.Format("sync trigger({0}).", triggerType.ToString()));
-                }
-            }
-            catch (Exception exception)
-            {
-                Logging.AppendError("RunTrigger", exception.Message);
+                await RunBackgroundTask();
             }
             finally
             {
-                taskInstance.Canceled -= OnTaskCanceled;
-
-                _deferral.Complete();
+                taskInstance.Progress = 100;
+                
+                _deferral?.Complete();
                 _deferral = null;
             }
         }

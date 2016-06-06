@@ -1,16 +1,10 @@
-﻿<Application
-    x:Class="DevicePower.App"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:DevicePower"
-    RequestedTheme="Dark">
+<common:BootStrapper x:Class="DevicePower.App"
+                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:common="using:Template10.Common">
 
     <Application.Resources>
-        <ResourceDictionary>
-            <Style x:Key="ListContainerStyle" TargetType="ListBoxItem">
-                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            </Style>
-        </ResourceDictionary>
+        <ResourceDictionary Source="Styles\Custom.xaml" />
     </Application.Resources>
 
-</Application>
+</common:BootStrapper>

@@ -1,6 +1,7 @@
 ﻿/*
  *  Copyright © 2016 Russell Libby
  */
+
 using Windows.ApplicationModel.Background;
 
 #pragma warning disable 4014, 1998
@@ -10,11 +11,11 @@ namespace DevicePowerTask
     /// <summary>
     /// Background task for synchronizing data to the band.
     /// </summary>
-    public sealed class DevicePowerTimerBandTask : IBackgroundTask
+    public sealed class AppServiceTask : IBackgroundTask
     {
         #region Private fields
 
-        private readonly SyncTask _task = new SyncTask(DeviceTriggerType.Timer);
+        private readonly SyncTask _task = new SyncTask(DeviceTriggerType.AppService);
 
         #endregion
 

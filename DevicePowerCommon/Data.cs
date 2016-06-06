@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright © 2015 Russell Libby
+ *  Copyright © 2016 Russell Libby
  */
 
 using Microsoft.Band.Tiles.Pages;
@@ -51,10 +51,11 @@ namespace DevicePowerCommon
         /// <summary>
         /// Generates the data for page two of the band tile.
         /// </summary>
+        /// <param name="applicationUpdate">True if being updated by the application.</param>
         /// <returns>The page data.</returns>
-        private static PageData GenerateInfoPageData(bool isApp = false)
+        private static PageData GenerateInfoPageData(bool applicationUpdate = false)
         {
-            var description = string.Format("{0} Updated\n{1}", (isApp ? "Application" : "Background"), DateTime.Now.ToString(Common.DateFormat));
+            var description = string.Format("{0} Updated\n{1}", (applicationUpdate ? "Application" : "Background"), DateTime.Now.ToString(Common.DateFormat));
             var updated = new WrappedTextBlockData(Common.UpdateId, description);
 
             return new PageData(Guid.NewGuid(), 1, updated);
@@ -67,8 +68,9 @@ namespace DevicePowerCommon
         /// <summary>
         /// Generates all the pages for the band tile.
         /// </summary>
+        /// <param name="applicationUpdate">True if being updated by the application.</param>
         /// <returns>An array of page data.</returns>
-        public static PageData[] GeneratePages()
+        public static PageData[] GeneratePages(bool applicationUpdate = false)
         {
             var results = new List<PageData>();
             var battery = Battery.AggregateBattery;
@@ -81,7 +83,7 @@ namespace DevicePowerCommon
                 if (estimate != TimeSpan.MaxValue) results.Insert(0, GenerateEstimatePageData(estimate));
             }
 
-            results.Insert(0, GenerateInfoPageData());
+            results.Insert(0, GenerateInfoPageData(applicationUpdate));
 
             return results.ToArray();
         }

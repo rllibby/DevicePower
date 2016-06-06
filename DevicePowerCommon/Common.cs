@@ -22,6 +22,14 @@ namespace DevicePowerCommon
         }
 
         /// <summary>
+        /// Description message for full charge.
+        /// </summary>
+        public static string FullCharge
+        {
+            get { return @"Fully Charged"; }
+        }
+
+        /// <summary>
         /// The application title.
         /// </summary>
         public static string Title
@@ -34,7 +42,7 @@ namespace DevicePowerCommon
         /// </summary>
         public static string Version
         {
-            get { return "1.1.0.0"; }
+            get { return "1.2.0.0"; }
         }
 
         /// <summary>
@@ -46,11 +54,27 @@ namespace DevicePowerCommon
         }
 
         /// <summary>
+        /// The message to display when running band check.
+        /// </summary>
+        public static string Checking
+        {
+            get { return @"checking band..."; }
+        }
+
+        /// <summary>
+        /// The message to display when updating.
+        /// </summary>
+        public static string Updating
+        {
+            get { return @"updating band...";  }
+        }
+
+        /// <summary>
         /// Guid id for the band tile.
         /// </summary>
         public static string TileGuid
         {
-            get { return "84FC1467-7F57-4EA2-A1D2-46EFD844AC5E"; }
+            get { return "7F000974-67BB-4B5F-B56E-3E1AE2530C14"; }
         }
 
         /// <summary>

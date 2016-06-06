@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright © 2015 Russell Libby
+ *  Copyright © 2016 Russell Libby
  */
 
 using Newtonsoft.Json;
@@ -20,20 +20,22 @@ namespace DevicePowerCommon
 
         #endregion
 
+        #region Public methods
+
         /// <summary>
-        /// Creates a formatted message to add to the log.
+        /// Append data to the the current log.
         /// </summary>
         /// <param name="methodName">The name of the method where the error occurred.</param>
-        /// <param name="error">The error description.</param>
+        /// <param name="error">The error that occurred.</param>
         public static void AppendError(string methodName, string error)
         {
-            Append(string.Format("error in '{0}'\r\n{1}", methodName, error));
+            Append(string.Format("Error in '{0}'\r\n{1}", methodName, error));
         }
 
         /// <summary>
         /// Append data to the the current log.
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">The message data to append to the log.</param>
         public static void Append(string message)
         {
             var data = Log();
@@ -43,6 +45,14 @@ namespace DevicePowerCommon
             while (data.Count > 64) data.RemoveAt(data.Count - 1);
 
             ApplicationData.Current.LocalSettings.Values[Logger] = JsonConvert.SerializeObject(data);
+        }
+
+        /// <summary>
+        /// Clears the logging data.
+        /// </summary>
+        public static void Clear()
+        {
+            ApplicationData.Current.LocalSettings.Values[Logger] = null;
         }
 
         /// <summary>
@@ -62,5 +72,7 @@ namespace DevicePowerCommon
                 return new List<string>();
             }
         }
+
+        #endregion
     }
 }

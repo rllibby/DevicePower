@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright © 2015 Russell Libby
+ *  Copyright © 2016 Russell Libby
  */
 
 namespace DevicePowerTask
@@ -20,8 +20,8 @@ namespace DevicePowerTask
         PowerChange,
 
         /// <summary>
-        /// Tile event trigger.
+        /// AppService event trigger.
         /// </summary>
-        Tile
+        AppService
     }
 }
