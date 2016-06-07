@@ -67,6 +67,24 @@ namespace DevicePower.Services.SettingsServices
             }
         }
 
+        /// <summary>
+        /// The warning level percentage.
+        /// </summary>
+        public int WarningLevel
+        {
+            get { return _helper.Read<int>(nameof(WarningLevel), 20); }
+            set { _helper.Write(nameof(WarningLevel), value); }
+        }
+
+        /// <summary>
+        /// The critical level percentage.
+        /// </summary>
+        public int CriticalLevel
+        {
+            get { return _helper.Read<int>(nameof(CriticalLevel), 5); }
+            set { _helper.Write(nameof(CriticalLevel), value); }
+        }
+
         #endregion
     }
 }

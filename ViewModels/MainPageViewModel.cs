@@ -33,6 +33,7 @@ namespace DevicePower.ViewModels
     {
         #region Private fields
 
+        private Services.SettingsServices.SettingsService _settings;
         private static IBackgroundTaskRegistration _timerRegistration;
         private static IBackgroundTaskRegistration _systemRegistration;
         private RelayCommand _canAdd;
@@ -631,7 +632,8 @@ namespace DevicePower.ViewModels
 
                 if (report == null) return;
 
-                _percent = report.Percentage();
+                _percent = (Common.IsEmulator() ? 98 : report.Percentage());
+
                 Percentage = string.Format("{0}%", _percent);
                 Status = report.StatusDescription();
                 Estimate = (estimate == TimeSpan.MaxValue) ? string.Empty : string.Format("{0:0.00} hrs", estimate.TotalHours);
@@ -647,8 +649,7 @@ namespace DevicePower.ViewModels
         /// </summary>
         public MainPageViewModel()
         {
-            if (Windows.ApplicationModel.DesignMode.DesignModeEnabled) { }
-
+            _settings = Services.SettingsServices.SettingsService.Instance;
             _canAdd = new RelayCommand(new Action(AddTile), CanAddTile);
             _canRemove = new RelayCommand(new Action(RemoveTile), CanRemoveTile);
             _canSync = new RelayCommand(new Action(Sync), CanSync);
@@ -840,9 +841,12 @@ namespace DevicePower.ViewModels
         {
             get
             {
+                var warn = _settings.WarningLevel;
+                var critical = _settings.CriticalLevel;
+                
                 if (_percent == 0) return Application.Current.Resources["AppBarItemForegroundThemeBrush"] as SolidColorBrush;
-                if (_percent > 50) return new SolidColorBrush(Colors.DarkGreen);
-                if (_percent > 20) return new SolidColorBrush(Color.FromArgb(255, 252, 187, 28));
+                if (_percent > warn) return new SolidColorBrush(Colors.DarkGreen);
+                if (_percent > critical) return new SolidColorBrush(Color.FromArgb(255, 252, 187, 28));
 
                 return new SolidColorBrush(Colors.Red);
             }

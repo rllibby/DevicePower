@@ -71,6 +71,46 @@ namespace DevicePower.ViewModels
             }
         }
 
+        /// <summary>
+        /// The warning level percentage.
+        /// </summary>
+        public int WarningLevel
+        {
+            get { return _settings.WarningLevel; }
+            set
+            {
+                _settings.WarningLevel = value;
+
+                if (_settings.CriticalLevel >= value)
+                {
+                    _settings.CriticalLevel = value - 1;
+                    RaisePropertyChanged("CriticalLevel");
+                }
+
+                base.RaisePropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// The critical level percentage.
+        /// </summary>
+        public int CriticalLevel
+        {
+            get { return _settings.CriticalLevel; }
+            set
+            {
+                _settings.CriticalLevel = value;
+
+                if (_settings.WarningLevel <= value)
+                {
+                    _settings.WarningLevel = value + 1;
+                    RaisePropertyChanged("WarningLevel");
+                }
+
+                base.RaisePropertyChanged();
+            }
+        }
+
         #endregion
     }
 

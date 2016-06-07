@@ -2,6 +2,8 @@
  *  Copyright © 2016, Russell Libby
  */
 
+using System;
+using Windows.ApplicationModel;
 using Windows.System.Profile;
 
 namespace DevicePowerCommon
@@ -147,6 +149,27 @@ namespace DevicePowerCommon
         public static string DateFormat
         {
             get { return "MM/dd h:mm tt"; }
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Determines if we are running in an emulator.
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsEmulator()
+        {
+#if DEBUG
+            if (!DeviceFamily.Equals("Mobile", StringComparison.OrdinalIgnoreCase)) return false;
+
+            var package = Package.Current;
+
+            return (package.Id.Architecture != Windows.System.ProcessorArchitecture.Arm);
+#else
+            return false;
+#endif
         }
 
         #endregion

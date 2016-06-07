@@ -12,6 +12,7 @@
     <Color x:Key="SystemAccentColor">SteelBlue</Color>
     
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+    <converters:DoubleToIntConverter x:Key="DoubleToInt" />
 
     <ResourceDictionary.ThemeDictionaries>
 
@@ -21,7 +22,8 @@
             <SolidColorBrush x:Key="ContrastColorBrush" Color="{StaticResource ContrastColor}" />
             <SolidColorBrush x:Key="ExtendedSplashBackground" Color="{StaticResource CustomColor}" />
             <SolidColorBrush x:Key="ExtendedSplashForeground" Color="{StaticResource ContrastColor}" />
-
+            <SolidColorBrush x:Key="NumericForeground" Color="{StaticResource CustomColor}" />
+            
             <Style TargetType="controls:HamburgerMenu">
                 <Setter Property="AccentColor" Value="{StaticResource CustomColor}" />
                 <Setter Property="VisualStateNarrowMinWidth" Value="{StaticResource NarrowMinWidth}" />
@@ -49,7 +51,8 @@
             <SolidColorBrush x:Key="ContrastColorBrush" Color="{StaticResource ContrastColor}" />
             <SolidColorBrush x:Key="ExtendedSplashBackground" Color="{StaticResource CustomColor}" />
             <SolidColorBrush x:Key="ExtendedSplashForeground" Color="{StaticResource ContrastColor}" />
-
+            <SolidColorBrush x:Key="NumericForeground" Color="SkyBlue" />
+            
             <Style TargetType="controls:HamburgerMenu">
 
                 <!--
