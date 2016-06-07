@@ -1,5 +1,8 @@
 ﻿/*
  *  Copyright © 2016 Russell Libby
+ *  
+ *  http://blogs.u2u.be/diederik/post/2013/06/24/A-Modern-UI-radial-gauge-control-for-Windows-8-Store-apps.aspx
+ *  
  */
 
 using System;

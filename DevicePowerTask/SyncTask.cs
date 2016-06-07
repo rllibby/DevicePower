@@ -99,7 +99,7 @@ namespace DevicePowerTask
             { 
                 var pairedBands = await BandClientManager.Instance.GetBandsAsync(true);
 
-                if (_deferral == null) return;
+                if ((pairedBands.Length < 1) || (_deferral == null)) return;
 
                 using (var bandClient = await BandClientManager.Instance.ConnectAsync(pairedBands[0]))
                 {

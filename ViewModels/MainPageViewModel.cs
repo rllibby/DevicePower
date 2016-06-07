@@ -43,7 +43,7 @@ namespace DevicePower.ViewModels
         private static bool _paired;
         private static bool _tileAdded;
         private static bool _bandCheck;
-        private string _percentage;
+        private double _percentage;
         private string _estimate;
         private string _status;
         private int _percent;
@@ -634,7 +634,7 @@ namespace DevicePower.ViewModels
 
                 _percent = (Common.IsEmulator() ? 98 : report.Percentage());
 
-                Percentage = string.Format("{0}%", _percent);
+                Percentage = _percent;
                 Status = report.StatusDescription();
                 Estimate = (estimate == TimeSpan.MaxValue) ? string.Empty : string.Format("{0:0.00} hrs", estimate.TotalHours);
             });
@@ -823,7 +823,7 @@ namespace DevicePower.ViewModels
         /// <summary>
         /// Battery percentage.
         /// </summary>
-        public string Percentage
+        public double Percentage
         {
             get { return _percentage;  }
             set
@@ -841,12 +841,13 @@ namespace DevicePower.ViewModels
         {
             get
             {
+                var percent = Convert.ToInt32(Percentage);
                 var warn = _settings.WarningLevel;
                 var critical = _settings.CriticalLevel;
                 
-                if (_percent == 0) return Application.Current.Resources["AppBarItemForegroundThemeBrush"] as SolidColorBrush;
-                if (_percent > warn) return new SolidColorBrush(Colors.DarkGreen);
-                if (_percent > critical) return new SolidColorBrush(Color.FromArgb(255, 252, 187, 28));
+                if (percent == 0) return Application.Current.Resources["AppBarItemForegroundThemeBrush"] as SolidColorBrush;
+                if (percent > warn) return new SolidColorBrush(Colors.DarkGreen);
+                if (percent > critical) return new SolidColorBrush(Color.FromArgb(255, 252, 187, 28));
 
                 return new SolidColorBrush(Colors.Red);
             }
