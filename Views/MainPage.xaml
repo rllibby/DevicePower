@@ -6,6 +6,7 @@
       xmlns:Interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:controls="using:Template10.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:user="using:DevicePower.UserControls"
       xmlns:local="using:DevicePower.Views"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:vm="using:DevicePower.ViewModels" mc:Ignorable="d">
@@ -62,7 +63,10 @@
                       RelativePanel.Below="pageHeader"
                       VerticalScrollBarVisibility="Auto">
 
-            <StackPanel Margin="20, 40" Padding="10" BorderThickness="1">
+            <StackPanel Margin="20, 20" Padding="10" BorderThickness="1">
+                <user:Gauge ScaleTickBrush="{ThemeResource ApplicationPageBackgroundThemeBrush}" Unit="percent" Value="98" Width="250" Height="250" HorizontalAlignment="Center">
+                    
+                </user:Gauge>
                 <TextBlock x:Name="Percentage" Text="{x:Bind ViewModel.Percentage}" FontFamily="Segoe WP Light" FontSize="72" HorizontalAlignment="Center" FontWeight="Bold" Foreground="{x:Bind ViewModel.PercentageColor}" />
                 <TextBlock x:Name="Status" Text="{x:Bind ViewModel.Status}" FontFamily="Segoe WP Light" FontSize="30" HorizontalAlignment="Center" Foreground="{ThemeResource AppBarItemForegroundThemeBrush}" />
                 <TextBlock x:Name="Estimate" Text="{x:Bind ViewModel.Estimate}" Visibility="{x:Bind ViewModel.EstimateVisible, Converter={StaticResource BooleanToVisibility}}" FontFamily="Segoe WP Light" FontSize="20" HorizontalAlignment="Center" Foreground="{ThemeResource AppBarItemForegroundThemeBrush}" />

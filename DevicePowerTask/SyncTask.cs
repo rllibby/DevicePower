@@ -73,7 +73,7 @@ namespace DevicePowerTask
 
                 if ((status == null) || !string.Equals(status.ToString(), BatteryStatus.Idle.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
-                    if ((report != null) && (report.Status == BatteryStatus.Idle) && (report.Percentage() == 100))
+                    if ((report.Status == BatteryStatus.Idle) && (report.Percentage() == 100))
                     {
                        await client.NotificationManager.ShowDialogAsync(new Guid(Common.TileGuid), Common.DeviceFamily, Common.FullCharge);
                     }
