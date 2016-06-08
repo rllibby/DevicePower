@@ -558,16 +558,7 @@ namespace DevicePower.ViewModels
         /// </summary>
         private async void Sync()
         {
-            Busy.SetBusy(true, Common.Updating);
-
-            try
-            {
-                await SyncToBand();
-            }
-            finally
-            {
-                Busy.SetBusy(false);
-            }
+            await SyncToBand();
         }
 
         /// <summary>
@@ -702,14 +693,7 @@ namespace DevicePower.ViewModels
         /// <returns>The async task.</returns>
         public override async Task OnNavigatedFromAsync(IDictionary<string, object> suspensionState, bool suspending)
         {
-            try
-            {
-                Battery.AggregateBattery.ReportUpdated -= OnBatteryReportUpdated;
-            }
-            finally
-            {
-                await Task.CompletedTask;
-            }
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -722,6 +706,7 @@ namespace DevicePower.ViewModels
             try
             {
                 args.Cancel = false;
+                Battery.AggregateBattery.ReportUpdated -= OnBatteryReportUpdated;
             }
             finally
             {
@@ -883,6 +868,10 @@ namespace DevicePower.ViewModels
         public bool EstimateVisible
         {
             get { return (string.IsNullOrEmpty(_estimate) ? false : true); }
+            set
+            {
+                base.RaisePropertyChanged();
+            }
         }
 
         /// <summary>
