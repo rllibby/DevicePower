@@ -107,11 +107,11 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BatteryReportExtension.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Dialogs.cs" />
     <Compile Include="Logging.cs" />
+    <Compile Include="Model\BatteryReportModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\DevicePowerCommon.rd.xml" />
   </ItemGroup>

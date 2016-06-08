@@ -24,7 +24,9 @@ namespace DevicePower.Converters
         /// <returns>The visibility state.</returns>
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            return ((value is bool) && (bool)value) ? Visibility.Visible : Visibility.Collapsed;
+            var state = System.Convert.ToBoolean(value);
+
+            return (state ? Visibility.Visible : Visibility.Collapsed);
         }
 
         /// <summary>

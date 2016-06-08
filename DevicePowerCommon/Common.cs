@@ -40,6 +40,22 @@ namespace DevicePowerCommon
         }
 
         /// <summary>
+        /// Message for tile added.
+        /// </summary>
+        public static string TileAdded
+        {
+            get { return @"Device Power tile added to band."; }
+        }
+
+        /// <summary>
+        /// Message for tile removed.
+        /// </summary>
+        public static string TileRemoved
+        {
+            get { return @"Device Power tile removed from band."; }
+        }
+
+        /// <summary>
         /// The application version.
         /// </summary>
         public static string Version

@@ -3,8 +3,8 @@
  */
 
 using DevicePower.Commands;
-using DevicePower.Views;
 using DevicePowerCommon;
+using DevicePowerCommon.Model;
 using Microsoft.Band;
 using Microsoft.Band.Tiles;
 using Microsoft.Band.Tiles.Pages;
@@ -17,7 +17,6 @@ using Template10.Services.NavigationService;
 using Windows.ApplicationModel.Background;
 using Windows.Devices.Power;
 using Windows.Storage;
-using Windows.System.Power;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
@@ -46,7 +45,6 @@ namespace DevicePower.ViewModels
         private double _percentage;
         private string _estimate;
         private string _status;
-        private int _percent;
 
         #endregion
 
@@ -207,7 +205,7 @@ namespace DevicePower.ViewModels
         /// <returns>The page layout.</returns>
         private static PageLayout GeneratePageOne()
         {
-            var titleBlock = new Microsoft.Band.Tiles.Pages.TextBlock
+            var titleBlock = new TextBlock
             {
                 ColorSource = ElementColorSource.BandHighlight,
                 ElementId = Common.TitleId,
@@ -217,7 +215,7 @@ namespace DevicePower.ViewModels
                 BaselineAlignment = TextBlockBaselineAlignment.Absolute
             };
 
-            var spacerBlock = new Microsoft.Band.Tiles.Pages.TextBlock
+            var spacerBlock = new TextBlock
             {
                 Color = new BandColor(0x77, 0x77, 0x77),
                 ElementId = Common.SpacerId,
@@ -228,7 +226,7 @@ namespace DevicePower.ViewModels
                 BaselineAlignment = TextBlockBaselineAlignment.Absolute
             };
 
-            var secondaryTitleBlock = new Microsoft.Band.Tiles.Pages.TextBlock
+            var secondaryTitleBlock = new TextBlock
             {
                 ColorSource = ElementColorSource.BandSecondaryText,
                 ElementId = Common.SeondaryTitleId,
@@ -244,7 +242,7 @@ namespace DevicePower.ViewModels
                 Orientation = FlowPanelOrientation.Horizontal
             };
 
-            var contentBlock = new Microsoft.Band.Tiles.Pages.TextBlock
+            var contentBlock = new TextBlock
             {
                 Color = new BandColor(0xff, 0xff, 0xff),
                 Font = TextBlockFont.Medium,
@@ -294,21 +292,12 @@ namespace DevicePower.ViewModels
         }
 
         /// <summary>
-        /// Add the additional tile icons to the band tile.
-        /// </summary>
-        /// <param name="tile">The band tile.</param>
-        private static async void AddTileIcons(BandTile tile)
-        {
-            if (tile == null) return;
-
-            tile.AdditionalIcons.Add(await LoadIcon("ms-appx:///Assets/icon.png"));
-        }
-
-        /// <summary>
         /// Ensures that a band is paired and attempts to add the tile if not already added.
         /// </summary>
         private async Task RunBandCheck()
         {
+            _bandCheck = true;
+
             await Dispatcher.DispatchAsync(async () =>
             {
                 var error = string.Empty;
@@ -364,14 +353,14 @@ namespace DevicePower.ViewModels
                                 SmallIcon = await LoadIcon("ms-appx:///Assets/TileSmall.png"),
                             };
 
-                            AddTileIcons(tile);
-
                             tile.PageLayouts.Add(GeneratePageOne());
                             tile.PageLayouts.Add(GeneratePageTwo());
 
                             try
                             {
                                 IsTileAdded = await bandClient.TileManager.AddTileAsync(tile);
+
+                                if (IsTileAdded) Logging.Append(Common.TileAdded);
                             }
                             catch (BandIOException bandex)
                             {
@@ -439,6 +428,8 @@ namespace DevicePower.ViewModels
                         await bandClient.UnsubscribeFromBackgroundTileEventsAsync(new Guid(Common.TileGuid));
 
                         IsTileAdded = false;
+
+                       Logging.Append(Common.TileRemoved);
                     }
                 }
                 catch (Exception exception)
@@ -566,16 +557,7 @@ namespace DevicePower.ViewModels
         /// </summary>
         public async void AddTile()
         {
-            Busy.SetBusy(true, Common.Updating);
-
-            try
-            {
-                await RunBandCheck();
-            }
-            finally
-            {
-                Busy.SetBusy(false);
-            }
+            await RunBandCheck();
         }
 
         /// <summary>
@@ -583,16 +565,7 @@ namespace DevicePower.ViewModels
         /// </summary>
         private async void RemoveTile()
         {
-            Busy.SetBusy(true, Common.Updating);
-
-            try
-            {
-                await DeleteTile();
-            }
-            finally
-            {
-                Busy.SetBusy(false);
-            }
+            await DeleteTile();
         }
 
         /// <summary>
@@ -613,17 +586,11 @@ namespace DevicePower.ViewModels
         {
             await Dispatcher.DispatchAsync(() =>
             {
-                var battery = Battery.AggregateBattery;
-                var report = (battery == null) ? null : battery.GetReport();
-                var estimate = PowerManager.RemainingDischargeTime;
+                BatteryReportModel.Update();
 
-                if (report == null) return;
-
-                _percent = (Common.IsEmulator() ? 98 : report.Percentage());
-
-                Percentage = _percent;
-                Status = report.StatusDescription();
-                Estimate = (estimate == TimeSpan.MaxValue) ? string.Empty : string.Format("{0:0.00} hrs", estimate.TotalHours);
+                Percentage = (Common.IsEmulator() ? 98 : BatteryReportModel.Percentage);
+                Estimate = BatteryReportModel.Estimate;
+                Status = BatteryReportModel.StatusDescription;
             });
         }
 
@@ -657,27 +624,12 @@ namespace DevicePower.ViewModels
         {
             try
             {
+                await UpdateStatus();
+
                 GetTaskRegistration();
                 Battery.AggregateBattery.ReportUpdated += OnBatteryReportUpdated;
 
-                await UpdateStatus();
-
-                if ((mode == NavigationMode.New) && !_bandCheck)
-                {
-                    _bandCheck = true;
-
-                    Busy.SetBusy(true, Common.Checking);
-
-                    try
-                    {
-                        await RunBandCheck();
-                    }
-                    finally
-                    {
-                        Busy.SetBusy(false);
-                    }
-
-                }
+                if ((mode == NavigationMode.New) && !_bandCheck) await RunBandCheck();
             }
             finally
             {
@@ -751,14 +703,6 @@ namespace DevicePower.ViewModels
         }
 
         /// <summary>
-        /// Returns the visibility state for the progress bar when syncing.
-        /// </summary>
-        public Visibility SyncVisibility
-        {
-            get { return (_syncing ? Visibility.Visible : Visibility.Collapsed); }
-        }
-
-        /// <summary>
         /// Returns true if we are already syncing with the band.
         /// </summary>
         public bool IsSyncing
@@ -769,7 +713,6 @@ namespace DevicePower.ViewModels
                 _syncing = value;
 
                 RaisePropertyChanged("IsSyncing");
-                RaisePropertyChanged("SyncVisibility");
 
                 _canAdd.RaiseCanExecuteChanged();
                 _canRemove.RaiseCanExecuteChanged();
@@ -843,6 +786,10 @@ namespace DevicePower.ViewModels
             set
             {
                 _status = value;
+
+                RaisePropertyChanged("EstimateVisible");
+                RaisePropertyChanged("Estimate");
+
                 base.RaisePropertyChanged();
             }
         }
@@ -858,7 +805,7 @@ namespace DevicePower.ViewModels
                 _estimate = value;
 
                 RaisePropertyChanged("EstimateVisible");
-                base.RaisePropertyChanged();
+                RaisePropertyChanged("Estimate");
             }
         }
 
@@ -870,6 +817,8 @@ namespace DevicePower.ViewModels
             get { return (string.IsNullOrEmpty(_estimate) ? false : true); }
             set
             {
+                if (!value) _estimate = string.Empty;
+
                 base.RaisePropertyChanged();
             }
         }

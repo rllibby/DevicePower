@@ -68,6 +68,8 @@
                             ScaleBrush="#FF3C3C3C" ScaleTickBrush="{ThemeResource ApplicationPageBackgroundThemeBrush}" Unit="percent" Value="{Binding Percentage}" Width="250" Height="250" HorizontalAlignment="Center" Margin="0,0,0,20" />
                 <TextBlock x:Name="Status" Text="{Binding Status, Mode=TwoWay}" FontSize="20" HorizontalAlignment="Center" Foreground="{ThemeResource AppBarItemForegroundThemeBrush}" />
                 <TextBlock x:Name="Estimate" Text="{Binding Estimate, Mode=TwoWay}" Visibility="{Binding EstimateVisible, Converter={StaticResource BooleanToVisibility}, Mode=TwoWay}" FontSize="20" HorizontalAlignment="Center" Foreground="{ThemeResource AppBarItemForegroundThemeBrush}" />
+                <ProgressRing Width="64" Height="64" Margin="0,32" Foreground="{ThemeResource AppBarItemForegroundThemeBrush}" IsActive="{Binding IsSyncing, Mode=TwoWay}" VerticalAlignment="Center" />
+
             </StackPanel>
         </ScrollViewer>
 

@@ -3,6 +3,7 @@
  */
 
 using DevicePowerCommon;
+using DevicePowerCommon.Model;
 using Microsoft.Band;
 using Microsoft.Band.Tiles;
 using System;
@@ -10,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.AppService;
 using Windows.ApplicationModel.Background;
-using Windows.Devices.Power;
 using Windows.Foundation.Collections;
 using Windows.Storage;
 using Windows.System.Power;
@@ -62,20 +62,19 @@ namespace DevicePowerTask
         /// Checks the power change event to see if the user's device is fully charged, and if this is 
         /// a new power state change..
         /// </summary>
-        /// <param name="report">The current battery report.</param>
-        private void CheckPowerChange(BatteryReport report)
+        private void CheckPowerChange()
         {
-            if (report == null) return;
+            BatteryReportModel.Update();
 
             try
             {
                 var status = ApplicationData.Current.LocalSettings.Values[Status];
 
-                _isPowerChange = (status == null) || !string.Equals(report.Status.ToString(), status.ToString());
+                _isPowerChange = (status == null) || !string.Equals(BatteryReportModel.Status.ToString(), status.ToString());
 
                 if ((status == null) || !string.Equals(status.ToString(), BatteryStatus.Idle.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
-                    _isFullCharge = ((report.Status == BatteryStatus.Idle) && (report.Percentage() == 100));
+                    _isFullCharge = ((BatteryReportModel.Status == BatteryStatus.Idle) && (BatteryReportModel.Percentage == 100));
                 }
             }
             catch (Exception exception)
@@ -84,7 +83,7 @@ namespace DevicePowerTask
             }
             finally
             {
-                ApplicationData.Current.LocalSettings.Values[Status] = (report == null) ? BatteryStatus.NotPresent.ToString() : report.Status.ToString();
+                ApplicationData.Current.LocalSettings.Values[Status] = BatteryReportModel.Status.ToString();
             }
         }
 
@@ -186,9 +185,7 @@ namespace DevicePowerTask
             /* Filter out multiple power change events (same state) when running on non mobile devices */
             if (_triggerType == DeviceTriggerType.PowerChange)
             {
-                var battery = Battery.AggregateBattery;
-
-                CheckPowerChange((battery == null) ? null : battery.GetReport());
+                CheckPowerChange();
 
                 if (!_isPowerChange)
                 {

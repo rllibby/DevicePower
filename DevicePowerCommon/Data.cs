@@ -2,6 +2,7 @@
  *  Copyright © 2016 Russell Libby
  */
 
+using DevicePowerCommon.Model;
 using Microsoft.Band.Tiles.Pages;
 using System;
 using System.Collections.Generic;
@@ -20,15 +21,13 @@ namespace DevicePowerCommon
         /// <summary>
         /// Generates the main page of the band tile.
         /// </summary>
-        /// <param name="report">The current battery report.</param>
         /// <returns>The page data.</returns>
-        private static PageData GenerateMainPageData(BatteryReport report)
+        private static PageData GenerateMainPageData()
         {
-            var percentage = report.Percentage();
             var title = new TextBlockData(Common.TitleId, Common.DeviceFamily);
             var spacer = new TextBlockData(Common.SpacerId, "|");
-            var secondary = new TextBlockData(Common.SeondaryTitleId, string.Format("{0}%", percentage));
-            var content = new TextBlockData(Common.ContentId, report.StatusDescription());
+            var secondary = new TextBlockData(Common.SeondaryTitleId, string.Format("{0}%", BatteryReportModel.Percentage));
+            var content = new TextBlockData(Common.ContentId, BatteryReportModel.StatusDescription);
 
             return new PageData(Guid.NewGuid(), 0, title, spacer, secondary, content);
         }
@@ -38,12 +37,12 @@ namespace DevicePowerCommon
         /// </summary>
         /// <param name="estimate">The estimated remaining time.</param>
         /// <returns>The page data.</returns>
-        private static PageData GenerateEstimatePageData(TimeSpan estimate)
+        private static PageData GenerateEstimatePageData(string estimate)
         {
             var title = new TextBlockData(Common.TitleId, Common.DeviceFamily);
             var spacer = new TextBlockData(Common.SpacerId, "|");
             var secondary = new TextBlockData(Common.SeondaryTitleId, "Estimate");
-            var content = new TextBlockData(Common.ContentId, string.Format("{0:0.00} hrs", estimate.TotalHours));
+            var content = new TextBlockData(Common.ContentId, estimate);
 
             return new PageData(Guid.NewGuid(), 0, title, spacer, secondary, content);
         }
@@ -72,17 +71,13 @@ namespace DevicePowerCommon
         /// <returns>An array of page data.</returns>
         public static PageData[] GeneratePages(bool applicationUpdate = false)
         {
+            BatteryReportModel.Update();
+
             var results = new List<PageData>();
-            var battery = Battery.AggregateBattery;
-            var report = (battery == null) ? null : battery.GetReport();
-            var estimate = PowerManager.RemainingDischargeTime;
+            var estimate = BatteryReportModel.Estimate;
 
-            if (report != null)
-            {
-                results.Insert(0, GenerateMainPageData(report));
-                if (estimate != TimeSpan.MaxValue) results.Insert(0, GenerateEstimatePageData(estimate));
-            }
-
+            results.Insert(0, GenerateMainPageData());
+            if (!string.IsNullOrEmpty(estimate)) results.Insert(0, GenerateEstimatePageData(estimate));
             results.Insert(0, GenerateInfoPageData(applicationUpdate));
 
             return results.ToArray();
