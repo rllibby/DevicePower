@@ -32,6 +32,8 @@ namespace DevicePowerTask
 
         private volatile BackgroundTaskDeferral _deferral;
         private DeviceTriggerType _triggerType;
+        private bool _isPowerChange;
+        private bool _isFullCharge;
 
         #endregion
 
@@ -57,26 +59,23 @@ namespace DevicePowerTask
         }
 
         /// <summary>
-        /// Checks the power change event to see if the user's device is fully charged.
+        /// Checks the power change event to see if the user's device is fully charged, and if this is 
+        /// a new power state change..
         /// </summary>
-        /// <param name="client">The band client to use for notifications.</param>
         /// <param name="report">The current battery report.</param>
-        private async Task CheckPowerChange(IBandClient client, BatteryReport report)
+        private void CheckPowerChange(BatteryReport report)
         {
-            if (client == null) return;
+            if (report == null) return;
 
             try
             {
-                if (report == null) return;
-
                 var status = ApplicationData.Current.LocalSettings.Values[Status];
+
+                _isPowerChange = (status == null) || !string.Equals(report.Status.ToString(), status.ToString());
 
                 if ((status == null) || !string.Equals(status.ToString(), BatteryStatus.Idle.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
-                    if ((report.Status == BatteryStatus.Idle) && (report.Percentage() == 100))
-                    {
-                       await client.NotificationManager.ShowDialogAsync(new Guid(Common.TileGuid), Common.DeviceFamily, Common.FullCharge);
-                    }
+                    _isFullCharge = ((report.Status == BatteryStatus.Idle) && (report.Percentage() == 100));
                 }
             }
             catch (Exception exception)
@@ -111,9 +110,10 @@ namespace DevicePowerTask
 
                     if (_triggerType == DeviceTriggerType.PowerChange)
                     {
-                        var battery = Battery.AggregateBattery;
-
-                        await CheckPowerChange(bandClient, (battery == null) ? null : battery.GetReport());
+                        if (_isFullCharge)
+                        {
+                            await bandClient.NotificationManager.ShowDialogAsync(new Guid(Common.TileGuid), Common.DeviceFamily, Common.FullCharge);
+                        }
                     }
 
                     await bandClient.TileManager.RemovePagesAsync(new Guid(Common.TileGuid));
@@ -182,6 +182,22 @@ namespace DevicePowerTask
         {
             _deferral = taskInstance.GetDeferral();
             taskInstance.Canceled += OnTaskCanceled;
+
+            /* Filter out multiple power change events (same state) when running on non mobile devices */
+            if (_triggerType == DeviceTriggerType.PowerChange)
+            {
+                var battery = Battery.AggregateBattery;
+
+                CheckPowerChange((battery == null) ? null : battery.GetReport());
+
+                if (!_isPowerChange)
+                {
+                    _deferral?.Complete();
+                    _deferral = null;
+
+                    return;
+                }
+            }
 
             Logging.Append(string.Format("Background task started for trigger type '{0}'.", _triggerType));
 

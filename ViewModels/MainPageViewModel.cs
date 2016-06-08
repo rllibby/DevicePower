@@ -153,10 +153,7 @@ namespace DevicePower.ViewModels
         {
             Dispatcher.DispatchAsync(() =>
             {
-                var message = (sender.Name.Equals(Common.TimerTaskName) ? "timer update..." : "power change update...");
-
                 IsSyncing = true;
-                Busy.SetBusy(true, message);
             });
         }
 
@@ -170,7 +167,6 @@ namespace DevicePower.ViewModels
             Dispatcher.DispatchAsync(() =>
             {
                 IsSyncing = false;
-                Busy.SetBusy(false);
             });
         }
 
@@ -862,7 +858,7 @@ namespace DevicePower.ViewModels
             set
             {
                 _status = value;
-                RaisePropertyChanged("Status");
+                base.RaisePropertyChanged();
             }
         }
 
@@ -875,8 +871,9 @@ namespace DevicePower.ViewModels
             set
             {
                 _estimate = value;
-                RaisePropertyChanged("Estimate");
+
                 RaisePropertyChanged("EstimateVisible");
+                base.RaisePropertyChanged();
             }
         }
 
