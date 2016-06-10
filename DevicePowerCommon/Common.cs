@@ -2,6 +2,10 @@
  *  Copyright © 2016, Russell Libby
  */
 
+using System;
+using Windows.ApplicationModel;
+using Windows.System.Profile;
+
 namespace DevicePowerCommon
 {
     /// <summary>
@@ -12,6 +16,22 @@ namespace DevicePowerCommon
         #region Public properties
 
         /// <summary>
+        /// Returns the simplified device family.
+        /// </summary>
+        public static string DeviceFamily
+        {
+            get { return AnalyticsInfo.VersionInfo.DeviceFamily.Replace("Windows.", ""); }
+        }
+
+        /// <summary>
+        /// Description message for full charge.
+        /// </summary>
+        public static string FullCharge
+        {
+            get { return @"Fully Charged"; }
+        }
+
+        /// <summary>
         /// The application title.
         /// </summary>
         public static string Title
@@ -20,11 +40,27 @@ namespace DevicePowerCommon
         }
 
         /// <summary>
+        /// Message for tile added.
+        /// </summary>
+        public static string TileAdded
+        {
+            get { return @"Device Power tile added to band."; }
+        }
+
+        /// <summary>
+        /// Message for tile removed.
+        /// </summary>
+        public static string TileRemoved
+        {
+            get { return @"Device Power tile removed from band."; }
+        }
+
+        /// <summary>
         /// The application version.
         /// </summary>
         public static string Version
         {
-            get { return "1.1.0.0"; }
+            get { return "1.2.0.0"; }
         }
 
         /// <summary>
@@ -36,11 +72,27 @@ namespace DevicePowerCommon
         }
 
         /// <summary>
+        /// The message to display when running band check.
+        /// </summary>
+        public static string Checking
+        {
+            get { return @"checking band..."; }
+        }
+
+        /// <summary>
+        /// The message to display when updating.
+        /// </summary>
+        public static string Updating
+        {
+            get { return @"updating band...";  }
+        }
+
+        /// <summary>
         /// Guid id for the band tile.
         /// </summary>
         public static string TileGuid
         {
-            get { return "84FC1467-7F57-4EA2-A1D2-46EFD844AC5E"; }
+            get { return "7F000974-67BB-4B5F-B56E-3E1AE2530C14"; }
         }
 
         /// <summary>
@@ -113,6 +165,27 @@ namespace DevicePowerCommon
         public static string DateFormat
         {
             get { return "MM/dd h:mm tt"; }
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Determines if we are running in an emulator.
+        /// </summary>
+        /// <returns></returns>
+        public static bool IsEmulator()
+        {
+#if DEBUG
+            if (!DeviceFamily.Equals("Mobile", StringComparison.OrdinalIgnoreCase)) return false;
+
+            var package = Package.Current;
+
+            return (package.Id.Architecture != Windows.System.ProcessorArchitecture.Arm);
+#else
+            return false;
+#endif
         }
 
         #endregion

@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright © 2015 Russell Libby
+ *  Copyright © 2016 Russell Libby
  */
 using Windows.ApplicationModel.Background;
 
@@ -12,6 +12,12 @@ namespace DevicePowerTask
     /// </summary>
     public sealed class DevicePowerTimerBandTask : IBackgroundTask
     {
+        #region Private fields
+
+        private readonly SyncTask _task = new SyncTask(DeviceTriggerType.Timer);
+
+        #endregion
+
         #region Public methods
 
         /// <summary>
@@ -20,7 +26,7 @@ namespace DevicePowerTask
         /// <param name="taskInstance">The background task instance being run.</param>
         public async void Run(IBackgroundTaskInstance taskInstance)
         {
-            SyncTask.Run(taskInstance);
+            _task.Run(taskInstance);
         }
 
         #endregion
