@@ -161,6 +161,22 @@ namespace DevicePower.ViewModels
         #region Public properties
 
         /// <summary>
+        /// True if not running on a mobile device.
+        /// </summary>
+        public bool IsNotMobile
+        {
+            get { return !IsMobile; }
+        }
+
+        /// <summary>
+        /// True if running on a mobile device.
+        /// </summary>
+        public bool IsMobile
+        {
+            get { return Common.DeviceFamily.Equals("Mobile", StringComparison.OrdinalIgnoreCase); }
+        }
+
+        /// <summary>
         /// Relay command for clearing the log.
         /// </summary>
         public RelayCommand ClearCommand

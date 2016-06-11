@@ -49,12 +49,12 @@
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
 
-        <controls:PageHeader x:Name="pageHeader" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True" RelativePanel.AlignTopWithPanel="True" Text="Battery Status">
+        <controls:PageHeader x:Name="pageHeader" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True" RelativePanel.AlignTopWithPanel="True" Text="Battery Status" EllipsisVisibility="{Binding IsNotMobile, Converter={StaticResource EllipseToVisibility}}">
             <controls:PageHeader.SecondaryCommands>
-                <AppBarButton Label="Add Tile" Command="{x:Bind ViewModel.AddCommand}" />
-                <AppBarButton Label="Remove Tile" Command="{x:Bind ViewModel.RemoveCommand}" />
+                <AppBarButton Label="Add Tile" Command="{x:Bind ViewModel.AddCommand}" Visibility="{Binding IsNotMobile, Converter={StaticResource BooleanToVisibility}}" />
+                <AppBarButton Label="Remove Tile" Command="{x:Bind ViewModel.RemoveCommand}" Visibility="{Binding IsNotMobile, Converter={StaticResource BooleanToVisibility}}"/>
             </controls:PageHeader.SecondaryCommands>
-            <AppBarButton Icon="Sync" Label="Sync" Command="{x:Bind ViewModel.SyncCommand}"/>
+            <AppBarButton Icon="Sync" Label="Sync" Command="{x:Bind ViewModel.SyncCommand}" Visibility="{Binding IsNotMobile, Converter={StaticResource BooleanToVisibility}}"/>
         </controls:PageHeader>
 
         <ScrollViewer Padding="10,10,10,10" RelativePanel.AlignBottomWithPanel="True"
@@ -72,6 +72,16 @@
 
             </StackPanel>
         </ScrollViewer>
+        
+        <CommandBar x:Name="pageFooter" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True" RelativePanel.AlignBottomWithPanel="True"
+                    Visibility="{Binding IsMobile, Converter={StaticResource BooleanToVisibility}}">
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Label="Add Tile" Command="{x:Bind ViewModel.AddCommand}" />
+                <AppBarButton Label="Remove Tile" Command="{x:Bind ViewModel.RemoveCommand}" />
+                <AppBarSeparator x:Name="workaround" Height="1" />
+            </CommandBar.SecondaryCommands>
+            <AppBarButton Icon="Sync" Label="Sync" Command="{x:Bind ViewModel.SyncCommand}"/>
+        </CommandBar>
 
     </RelativePanel>
 </Page>
