@@ -12,6 +12,7 @@
     <Color x:Key="SystemAccentColor">SteelBlue</Color>
     
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+    <converters:EllipseToVisibilityConverter x:Key="EllipseToVisibility" />
 
     <ResourceDictionary.ThemeDictionaries>
 

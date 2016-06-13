@@ -45,16 +45,15 @@
             </VisualStateGroup>
         </VisualStateManager.VisualStateGroups>
 
-
         <!--  header  -->
-        <controls:PageHeader x:Name="pageHeader" Frame="{x:Bind Frame}"
+        <controls:PageHeader x:Name="pageHeader"
                              RelativePanel.AlignLeftWithPanel="True"
                              RelativePanel.AlignRightWithPanel="True"
-                             RelativePanel.AlignTopWithPanel="True" Text="Logs">
+                             RelativePanel.AlignTopWithPanel="True" Text="Logs" EllipsisVisibility="{Binding IsNotMobile, Converter={StaticResource EllipseToVisibility}}">
             <controls:PageHeader.SecondaryCommands>
-                <AppBarButton Icon="Copy" Label="Copy" Command="{x:Bind ViewModel.CopyCommand}"/>
+                <AppBarButton Icon="Copy" Label="Copy" Command="{x:Bind ViewModel.CopyCommand}" Visibility="{Binding IsNotMobile, Converter={StaticResource BooleanToVisibility}}" />
                 <AppBarSeparator />
-                <AppBarButton Icon="Clear" Label="Clear" Command="{x:Bind ViewModel.ClearCommand}"/>
+                <AppBarButton Icon="Clear" Label="Clear" Command="{x:Bind ViewModel.ClearCommand}" Visibility="{Binding IsNotMobile, Converter={StaticResource BooleanToVisibility}}" />
             </controls:PageHeader.SecondaryCommands>
         </controls:PageHeader>
 
@@ -77,6 +76,17 @@
             
         </ScrollViewer>
 
+        <CommandBar x:Name="pageFooter"
+                             RelativePanel.AlignLeftWithPanel="True"
+                             RelativePanel.AlignRightWithPanel="True"
+                             RelativePanel.AlignBottomWithPanel="True" Visibility="{Binding IsMobile, Converter={StaticResource BooleanToVisibility}}" >
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Icon="Copy" Label="Copy" Command="{x:Bind ViewModel.CopyCommand}" />
+                <AppBarSeparator />
+                <AppBarButton Icon="Clear" Label="Clear" Command="{x:Bind ViewModel.ClearCommand}" />
+                <AppBarSeparator x:Name="workaround" Height="1" />
+            </CommandBar.SecondaryCommands>
+        </CommandBar>        
     </RelativePanel>
 </Page>
 

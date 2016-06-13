@@ -2,7 +2,6 @@
  *  Copyright © 2016, Russell Libby
  */
 
-using DevicePower.Commands;
 using DevicePowerCommon;
 using DevicePowerCommon.Model;
 using Microsoft.Band;
@@ -35,9 +34,9 @@ namespace DevicePower.ViewModels
         private Services.SettingsServices.SettingsService _settings;
         private static IBackgroundTaskRegistration _timerRegistration;
         private static IBackgroundTaskRegistration _systemRegistration;
-        private RelayCommand _canAdd;
-        private RelayCommand _canRemove;
-        private RelayCommand _canSync;
+        private DelegateCommand _canAdd;
+        private DelegateCommand _canRemove;
+        private DelegateCommand _canSync;
         private static bool _syncing = true;
         private static bool _paired;
         private static bool _tileAdded;
@@ -604,9 +603,9 @@ namespace DevicePower.ViewModels
         public MainPageViewModel()
         {
             _settings = Services.SettingsServices.SettingsService.Instance;
-            _canAdd = new RelayCommand(new Action(AddTile), CanAddTile);
-            _canRemove = new RelayCommand(new Action(RemoveTile), CanRemoveTile);
-            _canSync = new RelayCommand(new Action(Sync), CanSync);
+            _canAdd = new DelegateCommand(new Action(AddTile), CanAddTile);
+            _canRemove = new DelegateCommand(new Action(RemoveTile), CanRemoveTile);
+            _canSync = new DelegateCommand(new Action(Sync), CanSync);
         }
 
         #endregion
@@ -671,17 +670,28 @@ namespace DevicePower.ViewModels
         #region Public properties
 
         /// <summary>
+        /// True if not running on a mobile device.
+        /// </summary>
+        public bool IsNotMobile
+        {
+            get { return !IsMobile; }
+        }
+
+        /// <summary>
+        /// True if running on a mobile device.
+        /// </summary>
+        public bool IsMobile
+        {
+            get { return Common.DeviceFamily.Equals("Mobile", StringComparison.OrdinalIgnoreCase); }
+        }
+
+        /// <summary>
         /// True if a band is paired, otherwise false.
         /// </summary>
         public bool IsPaired
         {
             get { return _paired; }
-            set
-            {
-                _paired = value;
-
-                RaisePropertyChanged("IsPaired");
-            }
+            set { Set(ref _paired, value); }
         }
 
         /// <summary>
@@ -692,9 +702,7 @@ namespace DevicePower.ViewModels
             get { return _tileAdded; }
             set
             {
-                _tileAdded = value;
-
-                RaisePropertyChanged("IsTileAdded");
+                Set(ref _tileAdded, value);
 
                 _canAdd.RaiseCanExecuteChanged();
                 _canRemove.RaiseCanExecuteChanged();
@@ -710,9 +718,7 @@ namespace DevicePower.ViewModels
             get { return _syncing; }
             set
             {
-                _syncing = value;
-
-                RaisePropertyChanged("IsSyncing");
+                Set(ref _syncing, value);
 
                 _canAdd.RaiseCanExecuteChanged();
                 _canRemove.RaiseCanExecuteChanged();
@@ -723,7 +729,7 @@ namespace DevicePower.ViewModels
         /// <summary>
         /// Add command.
         /// </summary>
-        public RelayCommand AddCommand
+        public DelegateCommand AddCommand
         {
             get { return _canAdd; }
         }
@@ -731,7 +737,7 @@ namespace DevicePower.ViewModels
         /// <summary>
         /// Remove command.
         /// </summary>
-        public RelayCommand RemoveCommand
+        public DelegateCommand RemoveCommand
         {
             get { return _canRemove; }
         }
@@ -739,7 +745,7 @@ namespace DevicePower.ViewModels
         /// <summary>
         /// Sync command.
         /// </summary>
-        public RelayCommand SyncCommand
+        public DelegateCommand SyncCommand
         {
             get { return _canSync; }
         }
@@ -752,8 +758,7 @@ namespace DevicePower.ViewModels
             get { return _percentage;  }
             set
             {
-                _percentage = value;
-                RaisePropertyChanged("Percentage");
+                Set(ref _percentage, value);
                 RaisePropertyChanged("PercentageColor");
             }
         }
@@ -785,12 +790,10 @@ namespace DevicePower.ViewModels
             get { return _status; }
             set
             {
-                _status = value;
+                Set(ref _status, value);
 
                 RaisePropertyChanged("EstimateVisible");
                 RaisePropertyChanged("Estimate");
-
-                base.RaisePropertyChanged();
             }
         }
 
@@ -802,10 +805,8 @@ namespace DevicePower.ViewModels
             get { return _estimate; }
             set
             {
-                _estimate = value;
-
+                Set(ref _estimate, value);
                 RaisePropertyChanged("EstimateVisible");
-                RaisePropertyChanged("Estimate");
             }
         }
 
@@ -818,7 +819,6 @@ namespace DevicePower.ViewModels
             set
             {
                 if (!value) _estimate = string.Empty;
-
                 base.RaisePropertyChanged();
             }
         }

@@ -142,7 +142,7 @@ namespace DevicePowerCommon
         {
             get
             {
-                return @"This application requires a Microsoft Band paired to your device. Also make sure that you have the latest firmware installed on your Band.";
+                return @"This application requires a Microsoft Band 2 paired to your device. Also make sure that you have the latest firmware installed on your Band.";
             }
         }
 
