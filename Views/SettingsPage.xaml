@@ -48,7 +48,7 @@
         </VisualStateManager.VisualStateGroups>
 
         <!--  header  -->
-        <controls:PageHeader x:Name="pageHeader" Content="Settings Page"
+        <controls:PageHeader x:Name="pageHeader" Content="Settings"
                              Frame="{x:Bind Frame}"
                              RelativePanel.AlignLeftWithPanel="True"
                              RelativePanel.AlignRightWithPanel="True"
@@ -62,7 +62,7 @@
                RelativePanel.Below="pageHeader">
 
             <!--  settings  -->
-            <PivotItem DataContext="{Binding SettingsPartViewModel}" Header="Settings">
+            <PivotItem DataContext="{Binding SettingsPartViewModel}" Header="General">
                 <ScrollViewer Margin="0,12,-12,0" HorizontalContentAlignment="Left"
                               VerticalScrollBarVisibility="Auto">
                     <RelativePanel HorizontalAlignment="Left">

@@ -2,7 +2,6 @@
  *  Copyright © 2016, Russell Libby
  */
 
-using DevicePower.Commands;
 using DevicePowerCommon;
 using System;
 using System.Collections.Generic;
@@ -24,8 +23,8 @@ namespace DevicePower.ViewModels
         #region Private fields
 
         private readonly ObservableCollection<string> _log = new ObservableCollection<string>();
-        private RelayCommand _clearCommand;
-        private RelayCommand _copyCommand;
+        private DelegateCommand _clearCommand;
+        private DelegateCommand _copyCommand;
 
         #endregion
 
@@ -106,8 +105,8 @@ namespace DevicePower.ViewModels
         {
             if (Windows.ApplicationModel.DesignMode.DesignModeEnabled) { }
 
-            _copyCommand = new RelayCommand(new Action(Copy), CanCopy);
-            _clearCommand = new RelayCommand(new Action(Clear), CanClear);
+            _copyCommand = new DelegateCommand(new Action(Copy), CanCopy);
+            _clearCommand = new DelegateCommand(new Action(Clear), CanClear);
 
             LoadLogFile();
         }
@@ -179,7 +178,7 @@ namespace DevicePower.ViewModels
         /// <summary>
         /// Relay command for clearing the log.
         /// </summary>
-        public RelayCommand ClearCommand
+        public DelegateCommand ClearCommand
         {
             get { return _clearCommand; }
         }
@@ -187,7 +186,7 @@ namespace DevicePower.ViewModels
         /// <summary>
         /// Relay command for copying the log.
         /// </summary>
-        public RelayCommand CopyCommand
+        public DelegateCommand CopyCommand
         {
             get { return _copyCommand; }
         }

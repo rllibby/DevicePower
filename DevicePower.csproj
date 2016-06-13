@@ -103,7 +103,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\EllipseToVisibilityConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
